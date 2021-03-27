@@ -1,13 +1,20 @@
 import re
 import itertools
+import pandas as pd
+import math
 from urllib.parse import urlparse
 
 
 """ -------------------------------------------------------
 This URL parser implements the approach taken in the paper 
 "Fast webpage classification using URL features" written by 
-Min-Yen Kan and Hoang Oanh Nguyen Thi.
+Min-Yen Kan and Hoang Oanh Nguyen Thi, as well as "Web page 
+categorization without the web page" by Min-Yen Kan.
 -------------------------------------------------------"""
+
+
+unigram_frequencies = dict(pd.read_csv('data/unigram_freq.csv', index_col=False).values)
+TOTAL_COUNT = sum(unigram_frequencies.values())
 
 
 def segment_by_baseline(url_string):
@@ -34,9 +41,7 @@ def segment_by_baseline(url_string):
 def segment_by_information_content(components):
     """
         Segment tokens containing concatenated words into its component
-        words. To do so, we make use of the UMBC WebBase Corpus to
-        calculate the Information Content (IC) of each partition.
-        Source: https://ebiquity.umbc.edu/resource/html/id/351
+        words.
     """
 
     def get_all_partitions(tkn):
@@ -57,28 +62,41 @@ def segment_by_information_content(components):
             parts.append(result)
         return parts
 
-    def get_info_content(partition):
-        return 1
+    def get_info_content(part):
+        """
+            We make use of the following corpus to calculate the
+            Information Content (IC) of each partition.
+            Source: https://www.kaggle.com/rtatman/english-word-frequency
+        """
+        ic_sum = 0
+        for frag in part:
+            freq = 0 if frag not in unigram_frequencies else unigram_frequencies[frag]
+            ic = 1000000 if freq == 0 else -math.log(freq / TOTAL_COUNT)
+            ic_sum += ic
+        return ic_sum
+
+    def get_best_partition(tkn):
+        parts = get_all_partitions(tkn)
+        chars = list(tkn)
+        ics = [get_info_content(partition) for partition in parts]
+        chars_ic = get_info_content(chars)
+        best_part = parts[ics.index(min(ics))] if min(ics) < chars_ic else [tkn]
+        return best_part
 
     for component in components:
-        for token in components[component]:
-            partitions = get_all_partitions(token)
-            characters = list(token)
-            info_contents = [get_info_content(partition) for partition in partitions]
-            chars_info_content = get_info_content(characters)
-            if min(info_contents) < chars_info_content:
-                best_partition = partitions[info_contents.index(min(info_contents))]
-                token = best_partition
-        components[component] = list(itertools.chain.from_iterable(components[component]))
+        best_partitions = [get_best_partition(token) for token in components[component]]
+        components[component] = list(itertools.chain.from_iterable(best_partitions))
     return components
 
 
 def parse(url_string):
     baseline_segmented_components = segment_by_baseline(url_string)
-    return baseline_segmented_components
+    return segment_by_information_content(baseline_segmented_components)
 
 
 test_url1 = "http://audience.cnn.com/services/activatealert.jsp" + \
            "?source=cnn&id=203&value=hurricane+isabel"
 test_url2 = "http://cs.cornell.edu/Info/Courses/Current/CS415/CS414.html"
-print(parse(test_url2))
+test_url3 = "http://audience.cnn.com/services/naturallanguageprocessing.jsp" + \
+           "?source=cnn&id=203&value=hurricane+isabel"
+print(parse(test_url1))
