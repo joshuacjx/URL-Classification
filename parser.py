@@ -51,7 +51,7 @@ def segment_by_information_content(components):
             Source: https://www.kaggle.com/rtatman/english-word-frequency
         """
         freq = 0 if tkn not in unigram_frequencies else unigram_frequencies[tkn]
-        return 1000000 if freq == 0 else -math.log(freq / TOTAL_COUNT)
+        return 10000 * len(tkn) if freq == 0 else -math.log(freq / TOTAL_COUNT)
 
     def get_best_partition(tkn):
         """
@@ -84,5 +84,5 @@ def parse(url_string):
 
 test_url1 = "http://audience.cnn.com/services/activatealert.jsp" + \
            "?source=cnn&id=203&value=hurricane+isabel"
-test_url3 = "http://www.christianmusicdaily.com"
+test_url3 = "http://www.cnnbbcmsnbc.com"
 print(parse(test_url3))
