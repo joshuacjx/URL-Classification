@@ -1,5 +1,4 @@
 import re
-import itertools
 import pandas as pd
 import math
 from urllib.parse import urlparse
@@ -55,10 +54,14 @@ def segment_by_information_content(components):
 
     def get_best_partition(tkn):
         """
-            This function implements the recursive strategy of partitioning
+            This function improves on the recursive strategy of partitioning
             proposed by Min-Yen Kan, which does not guarantee the global
             minimum entropy partitioning but matches the local minima in most
             cases. It has a much lower time complexity of O(n log n).
+
+            By assigning a much greater entropy value for tokens of greater
+            length, it is able to give accurate partitions for more than 2
+            concatenated words.
         """
         if len(tkn) == 1:
             return [tkn]
@@ -84,5 +87,5 @@ def parse(url_string):
 
 test_url1 = "http://audience.cnn.com/services/activatealert.jsp" + \
            "?source=cnn&id=203&value=hurricane+isabel"
-test_url3 = "http://www.cnnbbcmsnbc.com"
-print(parse(test_url3))
+test_url2 = "http://www.anyconcatenationofwords.com"
+print(parse(test_url2))
