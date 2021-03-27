@@ -40,52 +40,40 @@ def segment_by_baseline(url_string):
 
 def segment_by_information_content(components):
     """
-        Segment tokens containing concatenated words into its component
-        words.
+        Segment tokens containing concatenated words
+        into its component words.
     """
 
-    def get_all_partitions(tkn):
-        """
-            Returns a list of all possible partitions of a token.
-            Source: https://stackoverflow.com/questions/37023774/
-                    all-ways-to-partition-a-string
-        """
-        parts = []
-        for cut_points in range(1 << (len(tkn) - 1)):
-            result = []
-            last_cut = 0
-            for i in range(len(tkn) - 1):
-                if (1 << i) & cut_points != 0:
-                    result.append(tkn[last_cut:(i + 1)])
-                    last_cut = i + 1
-            result.append(tkn[last_cut:])
-            parts.append(result)
-        return parts
-
-    def get_info_content(part):
+    def get_info_content(tkn):
         """
             We make use of the following corpus to calculate the
             Information Content (IC) of each partition.
             Source: https://www.kaggle.com/rtatman/english-word-frequency
         """
-        ic_sum = 0
-        for frag in part:
-            freq = 0 if frag not in unigram_frequencies else unigram_frequencies[frag]
-            ic = 1000000 if freq == 0 else -math.log(freq / TOTAL_COUNT)
-            ic_sum += ic
-        return ic_sum
+        freq = 0 if tkn not in unigram_frequencies else unigram_frequencies[tkn]
+        return 1000000 if freq == 0 else -math.log(freq / TOTAL_COUNT)
 
     def get_best_partition(tkn):
-        parts = get_all_partitions(tkn)
-        chars = list(tkn)
-        ics = [get_info_content(partition) for partition in parts]
-        chars_ic = get_info_content(chars)
-        best_part = parts[ics.index(min(ics))] if min(ics) < chars_ic else [tkn]
-        return best_part
+        """
+            This function implements the recursive strategy of partitioning
+            proposed by Min-Yen Kan, which does not guarantee the global
+            minimum entropy partitioning but matches the local minima in most
+            cases. It has a much lower time complexity of O(n log n).
+        """
+        if len(tkn) == 1:
+            return [tkn]
+        tkn_entropy = get_info_content(tkn)
+        splits = [(tkn[:i], tkn[i:]) for i in range(1, len(tkn))]
+        entropies = [sum([get_info_content(frag) for frag in split]) for split in splits]
+        if min(entropies) < tkn_entropy:
+            best_split = splits[entropies.index(min(entropies))]
+            best_partition = [get_best_partition(frag) for frag in best_split]
+            return [it for lst in best_partition for it in lst]
+        return [tkn]
 
     for component in components:
         best_partitions = [get_best_partition(token) for token in components[component]]
-        components[component] = list(itertools.chain.from_iterable(best_partitions))
+        components[component] = [it for lst in best_partitions for it in lst]
     return components
 
 
@@ -96,7 +84,5 @@ def parse(url_string):
 
 test_url1 = "http://audience.cnn.com/services/activatealert.jsp" + \
            "?source=cnn&id=203&value=hurricane+isabel"
-test_url2 = "http://cs.cornell.edu/Info/Courses/Current/CS415/CS414.html"
-test_url3 = "http://audience.cnn.com/services/naturallanguageprocessing.jsp" + \
-           "?source=cnn&id=203&value=hurricane+isabel"
-print(parse(test_url1))
+test_url3 = "http://www.christianmusicdaily.com"
+print(parse(test_url3))
