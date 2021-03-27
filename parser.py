@@ -1,14 +1,30 @@
-# from urllib.parse import urlparse
 import re
+from urllib.parse import urlparse
 
 
-class Parser:
+""" -------------------------------------------------------
+This URL parser implements the approach taken in the paper 
+"Fast webpage classification using URL features" written by 
+Min-Yen Kan and Hoang Oanh Nguyen Thi.
+-------------------------------------------------------"""
 
-    def parse(self, url_string):
-        DELIMITERS = r'[:/.-]'
-        split_url = re.split(DELIMITERS, url_string)
-        return list(filter(lambda token: token != '', split_url))
+
+def segment_by_baseline(url_string):
+    """
+        Segment a URL into its components as given by the URI protocol,
+        and then further break these components at non-alphanumeric
+        characters and URI-escaped entities (eg. '%20').
+    """
+
+    DELIMITERS = r'[^a-zA-Z\d\s]'
+    split_url = list(filter(len, re.split(DELIMITERS, url_string)))
+    return split_url
 
 
-parser = Parser()
-print(parser.parse("http://www.cm-life.com/news/2003/09/12/features/librarians.also.help.on.web-2490840.shtml"))
+def parse(url_string):
+    return segment_by_baseline(url_string)
+
+
+test_url = "http://audience.cnn.com/services/activatealert.jsp" + \
+           "?source=cnn&id=203&value=hurricane+isabel"
+print(parse(test_url))
