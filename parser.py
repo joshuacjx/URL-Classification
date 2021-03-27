@@ -3,6 +3,7 @@ import pandas as pd
 import math
 from urllib.parse import urlparse
 
+# Run this code! Its pretty cool :D
 
 """ -------------------------------------------------------
 This URL parser implements the approach taken in the paper 
@@ -16,11 +17,9 @@ unigram_frequencies = dict(pd.read_csv('data/unigram_freq.csv', index_col=False)
 TOTAL_COUNT = sum(unigram_frequencies.values())
 
 
-def segment_by_baseline(url_string):
+def segment_by_component(url_string):
     """
-        Segment a URL into its components as given by the URI protocol,
-        and then further break these components at non-alphanumeric
-        characters and URI-escaped entities (eg. '%20').
+        Segment a URL into its components as given by the URI protocol.
     """
     parse_result = urlparse(url_string)
     components = {
@@ -31,6 +30,14 @@ def segment_by_baseline(url_string):
         'query': parse_result.query,
         'fragment': parse_result.fragment
     }
+    return components
+
+
+def segment_by_baseline(components):
+    """
+        Further break these components at non-alphanumeric
+        characters and URI-escaped entities (eg. '%20').
+    """
     DELIMITERS = r'[^a-zA-Z\d\s]'
     for component in components:
         components[component] = list(filter(len, re.split(DELIMITERS, components[component])))
@@ -81,11 +88,13 @@ def segment_by_information_content(components):
 
 
 def parse(url_string):
-    baseline_segmented_components = segment_by_baseline(url_string)
-    return segment_by_information_content(baseline_segmented_components)
+    return segment_by_information_content(
+        segment_by_baseline(
+            segment_by_component(
+                url_string)))
 
 
 test_url1 = "http://audience.cnn.com/services/activatealert.jsp" + \
            "?source=cnn&id=203&value=hurricane+isabel"
-test_url2 = "http://www.anyconcatenationofwords.com"
+test_url2 = "anyconcatenationofwordswillbesplitfairlyaccuratelyyay"
 print(parse(test_url2))
