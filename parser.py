@@ -62,13 +62,9 @@ def segment_by_information_content(components):
     def get_best_partition(tkn):
         """
             This function improves on the recursive strategy of partitioning
-            proposed by Min-Yen Kan, which does not guarantee the global
-            minimum entropy partitioning but matches the local minima in most
-            cases. It has a much lower time complexity of O(n log n).
-
-            By assigning a much greater entropy value for tokens of greater
-            length, it is able to give accurate partitions for more than 2
-            concatenated words.
+            proposed by Min-Yen Kan. By assigning a much greater entropy value
+            for tokens of greater length, it is able to give accurate partitions
+            for more than 2 concatenated words.
         """
         if len(tkn) == 1:
             return [tkn]
