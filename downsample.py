@@ -21,6 +21,37 @@ potentially_unsafe_for_kids = df[(df[1] == 'Arts') | (df[1] == 'Shopping') | (df
 # -2
 unsafe_for_kids = df[df[1] == 'Adult']
 
+# 5000-25000-25000-5000 (1:5:5:1)
+targeted_at_kids_downsampled = targeted_at_kids.sample(n=5000, random_state=123)
+targeted_at_kids_downsampled.loc[:, 1] = 2
+safe_for_kids_downsampled = safe_for_kids.sample(n=25000, random_state=123)
+safe_for_kids_downsampled.loc[:, 1] = 1
+potentially_unsafe_for_kids_downsampled = potentially_unsafe_for_kids.sample(n=25000, random_state=123)
+potentially_unsafe_for_kids_downsampled.loc[:, 1] = -1
+unsafe_for_kids_downsampled = unsafe_for_kids.sample(n=5000, random_state=123)
+unsafe_for_kids_downsampled.loc[:, 1] = -2
+
+total = pd.concat([targeted_at_kids_downsampled, safe_for_kids_downsampled, 
+    potentially_unsafe_for_kids_downsampled, unsafe_for_kids_downsampled], ignore_index=True)
+total_shuffled = total.sample(frac=1)
+total_shuffled.to_csv('1_5_5_1_60000.csv', header=False, index=False)
+
+# 5000-75000-75000-5000 (1:15:15:1)
+targeted_at_kids_downsampled = targeted_at_kids.sample(n=5000, random_state=123)
+targeted_at_kids_downsampled.loc[:, 1] = 2
+safe_for_kids_downsampled = safe_for_kids.sample(n=75000, random_state=123)
+safe_for_kids_downsampled.loc[:, 1] = 1
+potentially_unsafe_for_kids_downsampled = potentially_unsafe_for_kids.sample(n=75000, random_state=123)
+potentially_unsafe_for_kids_downsampled.loc[:, 1] = -1
+unsafe_for_kids_downsampled = unsafe_for_kids.sample(n=5000, random_state=123)
+unsafe_for_kids_downsampled.loc[:, 1] = -2
+
+total = pd.concat([targeted_at_kids_downsampled, safe_for_kids_downsampled, 
+    potentially_unsafe_for_kids_downsampled, unsafe_for_kids_downsampled], ignore_index=True)
+total_shuffled = total.sample(frac=1)
+total_shuffled.to_csv('1_15_15_1_160000.csv', header=False, index=False)
+
+# 20000-20000-20000-20000 (1:1:1:1)
 targeted_at_kids_downsampled = targeted_at_kids.sample(n=20000, random_state=123)
 targeted_at_kids_downsampled.loc[:, 1] = 2
 safe_for_kids_downsampled = safe_for_kids.sample(n=20000, random_state=123)
@@ -30,7 +61,9 @@ potentially_unsafe_for_kids_downsampled.loc[:, 1] = -1
 unsafe_for_kids_downsampled = unsafe_for_kids.sample(n=20000, random_state=123)
 unsafe_for_kids_downsampled.loc[:, 1] = -2
 
-targeted_at_kids_downsampled.to_csv('targeted_at_kids_downsampled_20000.csv', header=False, index=False)
-safe_for_kids_downsampled.to_csv('safe_for_kids_downsampled_20000.csv', header=False, index=False)
-potentially_unsafe_for_kids_downsampled.to_csv('potentially_unsafe_for_kids_downsampled_20000.csv', header=False, index=False)
-unsafe_for_kids_downsampled.to_csv('unsafe_for_kids_downsampled_20000.csv', header=False, index=False)
+total = pd.concat([targeted_at_kids_downsampled, safe_for_kids_downsampled, 
+    potentially_unsafe_for_kids_downsampled, unsafe_for_kids_downsampled], ignore_index=True)
+total_shuffled = total.sample(frac=1)
+total_shuffled.to_csv('1_1_1_1_80000.csv', header=False, index=False)
+
+
