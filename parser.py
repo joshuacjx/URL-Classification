@@ -84,13 +84,14 @@ def segment_by_information_content(components):
 
 
 def parse(url_string):
-    return segment_by_information_content(
-        segment_by_baseline(
-            segment_by_component(
-                url_string)))
+    return [it for lst in
+            list(segment_by_information_content(
+                segment_by_baseline(
+                    segment_by_component(url_string))).values())
+            for it in lst]
 
 
-test_url1 = "http://audience.cnn.com/services/activatealert.jsp" + \
-           "?source=cnn&id=203&value=hurricane+isabel"
+
+test_url1 = "http://movies.yahoo.com/shop?d=hv&amp;cf=info&amp;id=1800025460"
 test_url2 = "anyconcatenationofwordswillbesplitfairlyaccuratelyyay"
-print(parse(test_url2))
+print(parse(test_url1))
