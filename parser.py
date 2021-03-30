@@ -3,7 +3,6 @@ import pandas as pd
 import math
 from urllib.parse import urlparse
 
-# Run this code! Its pretty cool :D
 
 """ -------------------------------------------------------
 This URL parser implements the approach taken in the paper 
@@ -92,6 +91,6 @@ def parse(url_string):
 
 
 
-test_url1 = "http://movies.yahoo.com/shop?d=hv&amp;cf=info&amp;id=1800025460"
-test_url2 = "anyconcatenationofwordswillbesplitfairlyaccuratelyyay"
-print(parse(test_url1))
+# test_url1 = "http://movies.yahoo.com/shop?d=hv&amp;cf=info&amp;id=1800025460"
+# test_url2 = "anyconcatenationofwordswillbesplitfairlyaccuratelyyay"
+# print(parse(test_url1))
