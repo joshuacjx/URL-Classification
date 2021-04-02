@@ -7,9 +7,6 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 
 
-INDENTATION = '  '
-
-
 def train_model(X_train, y_train, ngram_range):
     count_vect = CountVectorizer(ngram_range=ngram_range)
     x_train_counts = count_vect.fit_transform(X_train)
@@ -24,14 +21,9 @@ def predict(model, count_vect, X_test):
     return model.predict(x_test_tfidf)
 
 
-def generate_result(test, y_pred, filename):
-    test['Verdict'] = pd.Series(y_pred)
-    test.drop(columns=['Text'], inplace=True)
-    test.to_csv(filename, index=False)
-
-
 def run_model(path, ngram_range, partitioning_ratios):
     print("Running Naive Bayes model on " + path)
+    INDENTATION = '  '
 
     train = pd.read_csv(path)
     raw_X_data = train['URL'].tolist()
@@ -62,3 +54,18 @@ def run_model(path, ngram_range, partitioning_ratios):
 run_model("data/1_1_1_1_80000.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
 run_model("data/1_5_5_1_60000.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
 run_model("data/1_15_15_1_160000.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
+
+
+"""
+Output:
+Running Naive Bayes model on data/1_1_1_1_80000.csv
+  Score on validation = 0.943011998436116
+  Score on testing = 0.6725812163240854
+Running Naive Bayes model on data/1_5_5_1_60000.csv
+  Score on validation = 0.6745938921730953
+  Score on testing = 0.5120784601330715
+Running Naive Bayes model on data/1_15_15_1_160000.csv
+  Score on validation = 0.5316816024720812
+  Score on testing = 0.4222094599325877
+"""
+
