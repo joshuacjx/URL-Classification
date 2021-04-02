@@ -68,4 +68,3 @@ Running Naive Bayes model on data/1_15_15_1_160000.csv
   Score on validation = 0.5316816024720812
   Score on testing = 0.4222094599325877
 """
-
