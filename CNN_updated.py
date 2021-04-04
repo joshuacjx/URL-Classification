@@ -2,15 +2,13 @@ from parser import parse
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from keras import layers
+from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
-from keras.models import Sequential
-from keras import layers
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
-import matplotlib.pyplot as plt
-plt.style.use('ggplot')
 
 def get_word_freq_and_word_rep(data):
     word_freq = {}
@@ -41,7 +39,7 @@ def get_vocab_index_rep(word_rep, vocab_index_dict):
         vocab_index_rep.append([word_to_index(word, vocab_index_dict) for word in rep])
     return vocab_index_rep
 
-df = pd.read_csv('balanced_data.csv', header=None) 
+df = pd.read_csv('data/balanced_data.csv', header=None) 
 X_train, X_test, y_train, y_test = train_test_split(df[0].tolist(), np.array(df[1].tolist(), dtype=np.int), test_size=0.25, random_state=123)
 y_train = to_categorical(y_train, 4)
 y_test = to_categorical(y_test, 4)
@@ -68,7 +66,7 @@ embedding_dim = 50
 def build_embedding_matrix(vocab_index_dict):
     embedding_matrix = np.zeros((vocab_size, embedding_dim), dtype=np.float32)
 
-    with open('glove.6B.50d.txt', 'r') as f:
+    with open('data/glove.6B.50d.txt', 'r') as f:
         for line in f:
             parts = line.split()
             word = parts[0]
@@ -107,21 +105,14 @@ def build_model(filters, kernel_size, pool_size, dropout_rate, n_dense_1, n_dens
     return model
 
 # grid search
-# param_grid = dict(filters=[16, 32, 64],
-#                   kernel_size=[2, 3, 4, 5],
-#                   pool_size=[2, 3],
-#                   dropout_rate=[0.1, 0.15, 0.2, 0.25], 
-#                   n_dense_1=[512, 256, 128], 
-#                   n_dense_2=[128, 64, 32], 
-#                   n_dense_3=[32, 16, 8])
 
-param_grid = dict(filters=[256, 512],
-                  kernel_size=[2, 3, 4],
-                  pool_size=[2, 3],
-                  dropout_rate=[0.15, 0.2, 0.25], 
-                  n_dense_1=[512], 
-                  n_dense_2=[256], 
-                  n_dense_3=[128])
+param_grid = dict(filters=[32, 64, 128, 256],
+                  kernel_size=[2],
+                  pool_size=[3],
+                  dropout_rate=[0.2], 
+                  n_dense_1=[256], 
+                  n_dense_2=[128], 
+                  n_dense_3=[64])
 
 # model = build_model(32, 3, 2, 0.2, 128, 64, 32)
 model = KerasClassifier(build_fn=build_model, epochs=10)
