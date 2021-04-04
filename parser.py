@@ -86,7 +86,7 @@ def parse(url_string):
     return [it for lst in
             list(segment_by_information_content(
                 segment_by_baseline(
-                    segment_by_component(url_string))).values())
+                    segment_by_component(url_string.lower()))).values())
             for it in lst]
 
 
