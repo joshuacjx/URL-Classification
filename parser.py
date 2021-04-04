@@ -3,7 +3,6 @@ import pandas as pd
 import math
 from urllib.parse import urlparse
 
-# Run this code! Its pretty cool :D
 
 """ -------------------------------------------------------
 This URL parser implements the approach taken in the paper 
