@@ -25,10 +25,10 @@ def run_model(path, ngram_range, partitioning_ratios):
     print("Running Naive Bayes model on " + path)
     INDENTATION = '  '
 
-    train = pd.read_csv(path)
-    raw_X_data = train['URL'].tolist()
+    train = pd.read_csv(path, header=None)
+    raw_X_data = train[0].tolist()
     X_data = [" ".join(parse(url)) for url in raw_X_data]
-    y_data = train['Verdict'].tolist()
+    y_data = train[1].tolist()
 
     num = len(X_data)
     last_train_idx = math.floor(partitioning_ratios[0]*num)
@@ -51,20 +51,12 @@ def run_model(path, ngram_range, partitioning_ratios):
     print(INDENTATION + 'Score on testing = {}'.format(test_score))
 
 
-run_model("data/1_1_1_1_80000.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
-run_model("data/1_5_5_1_60000.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
-run_model("data/1_15_15_1_160000.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
+run_model("data/balanced_data.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
 
 
 """
 Output:
-Running Naive Bayes model on data/1_1_1_1_80000.csv
-  Score on validation = 0.943011998436116
-  Score on testing = 0.6725812163240854
-Running Naive Bayes model on data/1_5_5_1_60000.csv
-  Score on validation = 0.6745938921730953
-  Score on testing = 0.5120784601330715
-Running Naive Bayes model on data/1_15_15_1_160000.csv
-  Score on validation = 0.5316816024720812
-  Score on testing = 0.4222094599325877
+Running Naive Bayes model on data/balanced_data.csv
+  Score on validation = 0.9308420928127439
+  Score on testing = 0.6775851446460903
 """
