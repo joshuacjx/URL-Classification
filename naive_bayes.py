@@ -5,6 +5,8 @@ from sklearn.metrics import f1_score
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import GridSearchCV
 
 
 INDENTATION = '  '
@@ -26,6 +28,7 @@ class NaiveBayesModel:
         return self.clf.predict(x_test_tfidf)
 
 
+# Read data
 data = pd.read_csv('data/balanced_data.csv', header=None)
 raw_X_data = data[0].tolist()
 X_data = [' '.join(parse(url)) for url in raw_X_data]
@@ -36,16 +39,27 @@ last_validation_idx = last_train_idx + math.floor(partitioning_ratios[1]*len(X_d
 
 model = NaiveBayesModel(min_n=1, max_n=4)
 
+# Training
 X_train = X_data[:last_validation_idx]
 y_train = y_data[:last_validation_idx]
 model.train(X_train, y_train)
 
+# Tuning of hyper-parameters
+# param_grid = dict(min_n=[1], max_n=[4])
+# build_model = lambda min_n, max_n: NaiveBayesModel(min_n, max_n)
+# classifier = KerasClassifier(build_fn=build_model, epochs=10)
+# grid = GridSearchCV(estimator=classifier, param_grid=param_grid, cv=5)
+# grid_result = grid.fit(X_train, y_train)
+# print('Best: %f using %s' % (grid_result.best_score_, grid_result.best_params_))
+
+# Validation
 X_validation = X_data[last_train_idx+1:last_validation_idx]
 y_validation_answer = y_data[last_train_idx+1:last_validation_idx]
 y_validation_pred = model.predict(X_validation)
 validation_score = f1_score(y_validation_answer, y_validation_pred, average='macro')
 print(INDENTATION + 'Score on validation = {}'.format(validation_score))
 
+# Testing
 X_test = X_data[last_validation_idx+1:]
 y_test_answer = y_data[last_validation_idx+1:]
 y_test_pred = model.predict(X_test)
