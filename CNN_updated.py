@@ -103,7 +103,7 @@ def build_model(filters, kernel_size, pool_size, dropout_rate, n_dense_1, n_dens
     model.add(layers.Dense(n_dense_3, activation='relu'))
     model.add(layers.Dense(4, activation='softmax'))
     model.compile(optimizer='adam', loss='categorical_crossentropy', 
-        metrics=[tf.keras.metrics.AUC(multi_label=False)])
+        metrics=[tf.keras.metrics.AUC()])
         # metrics=['accuracy'])
     return model
 
