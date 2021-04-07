@@ -5,66 +5,63 @@ from sklearn.metrics import f1_score
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import GridSearchCV
 
 
-def train_model(X_train, y_train, ngram_range):
-    count_vect = CountVectorizer(ngram_range=ngram_range)
-    x_train_counts = count_vect.fit_transform(X_train)
-    x_train_tfidf = TfidfTransformer().fit_transform(x_train_counts)
-    clf = MultinomialNB().fit(x_train_tfidf, y_train)
-    return clf, count_vect
+INDENTATION = '  '
 
 
-def predict(model, count_vect, X_test):
-    x_test_counts = count_vect.transform(X_test)
-    x_test_tfidf = TfidfTransformer().fit_transform(x_test_counts)
-    return model.predict(x_test_tfidf)
+class NaiveBayesModel:
+    def __init__(self, min_n, max_n):
+        self.clf = MultinomialNB()
+        self.count_vect = CountVectorizer(ngram_range=(min_n, max_n))
+
+    def train(self, X_train, y_train):
+        x_train_counts = self.count_vect.fit_transform(X_train)
+        x_train_tfidf = TfidfTransformer().fit_transform(x_train_counts)
+        self.clf.fit(x_train_tfidf, y_train)
+
+    def predict(self, X_test):
+        x_test_counts = self.count_vect.transform(X_test)
+        x_test_tfidf = TfidfTransformer().fit_transform(x_test_counts)
+        return self.clf.predict(x_test_tfidf)
 
 
-def run_model(path, ngram_range, partitioning_ratios):
-    print("Running Naive Bayes model on " + path)
-    INDENTATION = '  '
+# Read data
+data = pd.read_csv('data/balanced_data.csv', header=None)
+raw_X_data = data[0].tolist()
+X_data = [' '.join(parse(url)) for url in raw_X_data]
+y_data = data[1].tolist()
+partitioning_ratios = (0.7, 0.2, 0.1)
+last_train_idx = math.floor(partitioning_ratios[0]*len(X_data))
+last_validation_idx = last_train_idx + math.floor(partitioning_ratios[1]*len(X_data))
 
-    train = pd.read_csv(path)
-    raw_X_data = train['URL'].tolist()
-    X_data = [" ".join(parse(url)) for url in raw_X_data]
-    y_data = train['Verdict'].tolist()
+model = NaiveBayesModel(min_n=1, max_n=4)
 
-    num = len(X_data)
-    last_train_idx = math.floor(partitioning_ratios[0]*num)
-    last_validation_idx = last_train_idx + math.floor(partitioning_ratios[1]*num)
+# Training
+X_train = X_data[:last_validation_idx]
+y_train = y_data[:last_validation_idx]
+model.train(X_train, y_train)
 
-    X_train = X_data[:last_validation_idx]
-    y_train = y_data[:last_validation_idx]
-    model, count_vect = train_model(X_train, y_train, ngram_range)
+# Tuning of hyper-parameters
+# param_grid = dict(min_n=[1], max_n=[4])
+# build_model = lambda min_n, max_n: NaiveBayesModel(min_n, max_n)
+# classifier = KerasClassifier(build_fn=build_model, epochs=10)
+# grid = GridSearchCV(estimator=classifier, param_grid=param_grid, cv=5)
+# grid_result = grid.fit(X_train, y_train)
+# print('Best: %f using %s' % (grid_result.best_score_, grid_result.best_params_))
 
-    X_validation = X_data[last_train_idx+1:last_validation_idx]
-    y_validation_answer = y_data[last_train_idx+1:last_validation_idx]
-    y_validation_pred = predict(model, count_vect, X_validation)
-    validation_score = f1_score(y_validation_answer, y_validation_pred, average='macro')
-    print(INDENTATION + 'Score on validation = {}'.format(validation_score))
+# Validation
+X_validation = X_data[last_train_idx+1:last_validation_idx]
+y_validation_answer = y_data[last_train_idx+1:last_validation_idx]
+y_validation_pred = model.predict(X_validation)
+validation_score = f1_score(y_validation_answer, y_validation_pred, average='macro')
+print(INDENTATION + 'Score on validation = {}'.format(validation_score))
 
-    X_test = X_data[last_validation_idx+1:]
-    y_test_answer = y_data[last_validation_idx+1:]
-    y_test_pred = predict(model, count_vect, X_test)
-    test_score = f1_score(y_test_answer, y_test_pred, average='macro')
-    print(INDENTATION + 'Score on testing = {}'.format(test_score))
-
-
-run_model("data/1_1_1_1_80000.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
-run_model("data/1_5_5_1_60000.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
-run_model("data/1_15_15_1_160000.csv", ngram_range=(1, 4), partitioning_ratios=(0.7, 0.2, 0.1))
-
-
-"""
-Output:
-Running Naive Bayes model on data/1_1_1_1_80000.csv
-  Score on validation = 0.943011998436116
-  Score on testing = 0.6725812163240854
-Running Naive Bayes model on data/1_5_5_1_60000.csv
-  Score on validation = 0.6745938921730953
-  Score on testing = 0.5120784601330715
-Running Naive Bayes model on data/1_15_15_1_160000.csv
-  Score on validation = 0.5316816024720812
-  Score on testing = 0.4222094599325877
-"""
+# Testing
+X_test = X_data[last_validation_idx+1:]
+y_test_answer = y_data[last_validation_idx+1:]
+y_test_pred = model.predict(X_test)
+test_score = f1_score(y_test_answer, y_test_pred, average='macro')
+print(INDENTATION + 'Score on testing = {}'.format(test_score))

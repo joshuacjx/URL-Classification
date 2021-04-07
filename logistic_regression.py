@@ -44,13 +44,13 @@ def predict(model, count_vect, X_test):
     return model.predict(v)
 
 
-def run_model(path, partitioning_ratios, max_data):
+def run_model(path, partitioning_ratios):
     print("Running Logistic Regression model on " + path)
 
-    train = pd.read_csv(path)
-    raw_X_data = train['URL'].tolist()[:max_data]
+    train = pd.read_csv(path, header=None)
+    raw_X_data = train[0].tolist()
     X_data = [" ".join(parse(url)) for url in raw_X_data]
-    y_data = train['Verdict'].tolist()[:max_data]
+    y_data = train[1].tolist()
 
     num = len(X_data)
     last_train_idx = math.floor(partitioning_ratios[0] * num)
@@ -74,27 +74,4 @@ def run_model(path, partitioning_ratios, max_data):
     print(INDENTATION + 'Score on testing = {}'.format(test_score))
 
 
-MAX_DATA = 10000
-run_model("data/1_1_1_1_80000.csv", partitioning_ratios=(0.7, 0.2, 0.1), max_data=MAX_DATA)
-run_model("data/1_5_5_1_60000.csv", partitioning_ratios=(0.7, 0.2, 0.1), max_data=MAX_DATA)
-run_model("data/1_15_15_1_160000.csv", partitioning_ratios=(0.7, 0.2, 0.1), max_data=MAX_DATA)
-
-
-"""
-Output:
-Running Logistic Regression model on data/1_1_1_1_80000.csv
-  Commence training...
-  Finished training!
-  Score on validation = 0.6811064582382795
-  Score on testing = 0.6101794671047824
-Running Logistic Regression model on data/1_5_5_1_60000.csv
-  Commence training...
-  Finished training!
-  Score on validation = 0.6050786274730141
-  Score on testing = 0.5053070133531989
-Running Logistic Regression model on data/1_15_15_1_160000.csv
-  Commence training...
-  Finished training!
-  Score on validation = 0.5537133018891178
-  Score on testing = 0.44066990555754604
-"""
+run_model("data/balanced_data.csv", partitioning_ratios=(0.7, 0.2, 0.1))
