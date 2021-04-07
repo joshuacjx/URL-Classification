@@ -152,6 +152,7 @@ def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3
 model = build_model(0.2, 0.2, 32, 8, 8)
 
 # current best: 64, 32, 16, 8 Training Score: 0.9105 Testing Score:  0.9118
+# Training Score: 0.9185, Testing Score:  0.9203
 
 # Create callbacks
 callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
