@@ -90,7 +90,10 @@ def parse(url_string):
             for it in lst]
 
 
-
-# test_url1 = "http://movies.yahoo.com/shop?d=hv&amp;cf=info&amp;id=1800025460"
-# test_url2 = "anyconcatenationofwordswillbesplitfairlyaccuratelyyay"
-# print(parse(test_url1))
+# Parse balanced data and save as CSV for future usage
+# train = pd.read_csv('data/balanced_data.csv', header=None)
+# raw_X_data = train[0].tolist()
+# X_parsed = pd.Series([" ".join(parse(url)) for url in raw_X_data])
+# y_labels = pd.Series(train[1].tolist())
+# parsed_df = pd.concat([X_parsed, y_labels], axis=1)
+# parsed_df.to_csv('balanced_parsed_data.csv', header=False, index=False)
