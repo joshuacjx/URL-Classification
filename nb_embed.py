@@ -2,7 +2,7 @@ import math
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import f1_score
+from sklearn.metrics import roc_auc_score
 from sklearn.naive_bayes import MultinomialNB
 
 
@@ -13,6 +13,9 @@ the document, and then aggregate them using the coordinate-wise mean, min, or ma
 Source: https://stats.stackexchange.com/questions/221715/apply-word-embeddings-to-
         entire-document-to-get-a-feature-vector
 """
+
+
+INDENT = '  '
 
 
 class NaiveBayesEmbedModel:
@@ -52,13 +55,27 @@ class NaiveBayesEmbedModel:
         return self.multi_nb.predict(X_test_embed)
 
 
-INDENT = '  '
+def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
+    """
+    Source: https://stackoverflow.com/questions/39685740
+            /calculate-sklearn-roc-auc-score-for-multi-class
+    """
+    unique_class = set(actual_class)
+    roc_auc_dict = {}
+    for per_class in unique_class:
+        other_class = [x for x in unique_class if x != per_class]
+        new_actual_class = [0 if x in other_class else 1 for x in actual_class]
+        new_pred_class = [0 if x in other_class else 1 for x in pred_class]
+        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average = average)
+        roc_auc_dict[per_class] = roc_auc
+    return roc_auc_dict
+
 
 # Read URL data
+print("Reading data...")
 data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
 X_data = data[0].tolist()
 y_data = data[1].tolist()
-
 part_ratio = (0.7, 0.2, 0.1)
 last_train_idx = math.floor(part_ratio[0] * len(X_data))
 last_valid_idx = last_train_idx + math.floor(part_ratio[1] * len(X_data))
@@ -66,20 +83,23 @@ last_valid_idx = last_train_idx + math.floor(part_ratio[1] * len(X_data))
 model = NaiveBayesEmbedModel()
 
 # Training
+print("Training in progress...")
 X_train = X_data[:last_valid_idx]
 y_train = y_data[:last_valid_idx]
 model.train(X_train, y_train)
 
 # Validation
+print("Validation in progress...")
 X_valid = X_data[last_train_idx + 1:last_valid_idx]
 y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
 y_valid_pred = model.predict(X_valid)
-valid_score = f1_score(y_valid_ans, y_valid_pred, average='macro')
-print(INDENT + 'Score on validation = {}'.format(valid_score))
+valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
+print("Score on validation: " + str(valid_score))
 
 # Testing
+print("Testing in progress...")
 X_test = X_data[last_valid_idx + 1:]
 y_test_ans = y_data[last_valid_idx + 1:]
 y_test_pred = model.predict(X_test)
-test_score = f1_score(y_test_ans, y_test_pred, average='macro')
-print(INDENT + 'Score on testing = {}'.format(test_score))
+test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
+print("Score on testing: " + str(test_score))
