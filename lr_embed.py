@@ -45,8 +45,8 @@ class LogisticRegressionEmbedModel:
 
 def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
     """
-    Source: https://stackoverflow.com/questions/39685740
-            /calculate-sklearn-roc-auc-score-for-multi-class
+        Source: https://stackoverflow.com/questions/39685740/
+                calculate-sklearn-roc-auc-score-for-multi-class
     """
     unique_class = set(actual_class)
     roc_auc_dict = {}

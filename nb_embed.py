@@ -38,7 +38,7 @@ class NaiveBayesEmbedModel:
             return self.embeds[word]
         return self.embeds['<unk>']
 
-    def to_X_embed(self, X_data):
+    def to_X_embed_scaled(self, X_data):
         X_each_word_embed = [[self.get_embed(word) for word in sentence]
                              for sentence in X_data]
         X_aggregate = [np.mean(vect_list, axis=0) for vect_list in X_each_word_embed]
@@ -47,18 +47,18 @@ class NaiveBayesEmbedModel:
         return X_scaled
 
     def train(self, X_train, y_train):
-        X_train_embed = self.to_X_embed(X_train)
+        X_train_embed = self.to_X_embed_scaled(X_train)
         self.multi_nb.fit(X_train_embed, y_train)
 
     def predict(self, X_test):
-        X_test_embed = self.to_X_embed(X_test)
+        X_test_embed = self.to_X_embed_scaled(X_test)
         return self.multi_nb.predict(X_test_embed)
 
 
 def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
     """
-    Source: https://stackoverflow.com/questions/39685740
-            /calculate-sklearn-roc-auc-score-for-multi-class
+        Source: https://stackoverflow.com/questions/39685740/
+                calculate-sklearn-roc-auc-score-for-multi-class
     """
     unique_class = set(actual_class)
     roc_auc_dict = {}
