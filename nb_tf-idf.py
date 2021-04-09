@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 from sklearn.naive_bayes import MultinomialNB
 
@@ -35,24 +36,12 @@ def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
         other_class = [x for x in unique_class if x != per_class]
         new_actual_class = [0 if x in other_class else 1 for x in actual_class]
         new_pred_class = [0 if x in other_class else 1 for x in pred_class]
-        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average = average)
+        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average=average)
         roc_auc_dict[per_class] = roc_auc
     return roc_auc_dict
 
 
-INDENT = '  '
-
-# Read URL data
-print("Reading data...")
-data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
-X_data = data[0].tolist()
-y_data = data[1].tolist()
-part_ratio = (0.7, 0.2, 0.1)
-last_train_idx = math.floor(part_ratio[0] * len(X_data))
-last_valid_idx = last_train_idx + math.floor(part_ratio[1] * len(X_data))
-
-
-def get_best_params():
+def get_best_params(X_data, y_data):
     from sklearn.model_selection import RepeatedStratifiedKFold
     from sklearn.model_selection import GridSearchCV
     tuning_model = MultinomialNB()
@@ -68,31 +57,62 @@ def get_best_params():
     print('Best Hyper-parameters: %s' % result.best_params_)
 
 
+def get_best_ngram_range(X_train, y_train, X_test, y_test_ans):
+    from itertools import combinations
+    ranges = list(combinations(range(1, 7), 2))
+    scores = []
+    for pair in ranges:
+        print("Trying out " + str(pair) + "...")
+        tuning_model = NaiveBayesTfIdfModel(alpha=0.3, fit_prior=True, ngram_range=pair)
+        tuning_model.train(X_train, y_train)
+        y_test_pred = tuning_model.predict(X_test)
+        test_score = f1_score(y_test_ans, y_test_pred, average='macro')
+        scores.append(test_score)
+        print(INDENT + "Score: " + str(test_score))
+    return ranges[scores.index(max(scores))]
+
+
 """
-get_best_params()
+get_best_params(X_data, y_data)
+print(get_best_ngram_range(X_train, y_train, X_test, y_test_ans))
 Best Hyper-parameters: {'alpha': 0.30000000000000004, 'fit_prior': True}
+Best ngram-range: (1, 2)
 """
 
-model = NaiveBayesTfIdfModel(alpha=0.3, fit_prior=True, ngram_range=(1, 4))
+
+INDENT = '  '
+
+# Read data
+print("Reading data...")
+data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
+X_data = data[0].tolist()
+y_data = data[1].tolist()
+
+# Partition data
+part_ratio = (0.7, 0.2, 0.1)
+last_train_idx = math.floor(part_ratio[0] * len(X_data))
+last_valid_idx = last_train_idx + math.floor(part_ratio[1] * len(X_data))
+X_train = X_data[:last_valid_idx]
+y_train = y_data[:last_valid_idx]
+X_valid = X_data[last_train_idx + 1:last_valid_idx]
+y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
+X_test = X_data[last_valid_idx + 1:]
+y_test_ans = y_data[last_valid_idx + 1:]
+
+model = NaiveBayesTfIdfModel(alpha=0.3, fit_prior=True, ngram_range=(1, 2))
 
 # Training
 print("Training model...")
-X_train = X_data[:last_valid_idx]
-y_train = y_data[:last_valid_idx]
 model.train(X_train, y_train)
 
 # Validation
 print("Validating model...")
-X_valid = X_data[last_train_idx + 1:last_valid_idx]
-y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
 y_valid_pred = model.predict(X_valid)
 valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
 print("Score on validation: " + str(valid_score))
 
 # Testing
 print("Testing model...")
-X_test = X_data[last_valid_idx + 1:]
-y_test_ans = y_data[last_valid_idx + 1:]
 y_test_pred = model.predict(X_test)
 test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
 print("Score on testing: " + str(test_score))
