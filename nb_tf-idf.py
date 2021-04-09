@@ -6,14 +6,18 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 
 
+INDENT = '  '
+
+
 class NaiveBayesTfIdfModel:
     def __init__(self, min_n, max_n):
         self.multi_nb = MultinomialNB()
         self.vectorizer = CountVectorizer(ngram_range=(min_n, max_n))
+        self.transformer = TfidfTransformer()
 
     def train(self, X_train, y_train):
         X_train_counts = self.vectorizer.fit_transform(X_train)
-        X_train_tfidf = TfidfTransformer().fit_transform(X_train_counts)
+        X_train_tfidf = self.transformer.fit_transform(X_train_counts)
         self.multi_nb.fit(X_train_tfidf, y_train)
 
     def predict(self, X_test):
@@ -21,8 +25,6 @@ class NaiveBayesTfIdfModel:
         X_test_tfidf = TfidfTransformer().fit_transform(X_test_counts)
         return self.multi_nb.predict(X_test_tfidf)
 
-
-INDENT = '  '
 
 # Read URL data
 print("Reading data...")
@@ -47,7 +49,7 @@ X_valid = X_data[last_train_idx + 1:last_valid_idx]
 y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
 y_valid_pred = model.predict(X_valid)
 valid_score = f1_score(y_valid_ans, y_valid_pred, average='macro')
-print('Score on validation = {}'.format(valid_score))
+print(INDENT + 'Score on validation = {}'.format(valid_score))
 
 # Testing
 print("Testing in progress...")
@@ -55,7 +57,7 @@ X_test = X_data[last_valid_idx + 1:]
 y_test_ans = y_data[last_valid_idx + 1:]
 y_test_pred = model.predict(X_test)
 test_score = f1_score(y_test_ans, y_test_pred, average='macro')
-print('Score on testing = {}'.format(test_score))
+print(INDENT + 'Score on testing = {}'.format(test_score))
 
 
 """
