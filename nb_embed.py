@@ -15,12 +15,9 @@ Source: https://stats.stackexchange.com/questions/221715/apply-word-embeddings-t
 """
 
 
-INDENT = '  '
-
-
 class NaiveBayesEmbedModel:
-    def __init__(self):
-        self.multi_nb = MultinomialNB()
+    def __init__(self, alpha, fit_prior):
+        self.multi_nb = MultinomialNB(alpha=alpha, fit_prior=fit_prior)
         self.embeds = dict()
         self.load_embeds()
         self.scaler = MinMaxScaler()
@@ -66,40 +63,71 @@ def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
         other_class = [x for x in unique_class if x != per_class]
         new_actual_class = [0 if x in other_class else 1 for x in actual_class]
         new_pred_class = [0 if x in other_class else 1 for x in pred_class]
-        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average = average)
+        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average=average)
         roc_auc_dict[per_class] = roc_auc
     return roc_auc_dict
 
 
-# Read URL data
+def get_best_params(X_data, y_data):
+    from sklearn.model_selection import RepeatedStratifiedKFold
+    from sklearn.model_selection import GridSearchCV
+    tuning_model = MultinomialNB()
+    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+    space = dict()
+    space['alpha'] = list(np.arange(0.1, 2.1, 0.1))
+    space['fit_prior'] = [True, False]
+    search = GridSearchCV(tuning_model, space, scoring='accuracy', n_jobs=-1, cv=cv)
+    X_train_embed = NaiveBayesEmbedModel(alpha=0.3, fit_prior=True).to_X_embed_scaled(X_data)
+    result = search.fit(X_train_embed, y_data)
+    print('Best Score: %s' % result.best_score_)
+    print('Best Hyper-parameters: %s' % result.best_params_)
+
+
+"""
+get_best_params(X_data, y_data)
+Best Hyper-parameters: {'alpha': 0.30000000000000004, 'fit_prior': False}
+"""
+
+
+INDENT = '  '
+
+# Read data
 print("Reading data...")
 data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
 X_data = data[0].tolist()
 y_data = data[1].tolist()
+
+# Partition data
 part_ratio = (0.7, 0.2, 0.1)
 last_train_idx = math.floor(part_ratio[0] * len(X_data))
 last_valid_idx = last_train_idx + math.floor(part_ratio[1] * len(X_data))
-
-model = NaiveBayesEmbedModel()
-
-# Training
-print("Training in progress...")
 X_train = X_data[:last_valid_idx]
 y_train = y_data[:last_valid_idx]
+X_valid = X_data[last_train_idx + 1:last_valid_idx]
+y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
+X_test = X_data[last_valid_idx + 1:]
+y_test_ans = y_data[last_valid_idx + 1:]
+
+model = NaiveBayesEmbedModel(alpha=0.3, fit_prior=True)
+
+# Training
+print("Training model...")
 model.train(X_train, y_train)
 
 # Validation
-print("Validation in progress...")
-X_valid = X_data[last_train_idx + 1:last_valid_idx]
-y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
+print("Validating model...")
 y_valid_pred = model.predict(X_valid)
 valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
 print("Score on validation: " + str(valid_score))
 
 # Testing
-print("Testing in progress...")
-X_test = X_data[last_valid_idx + 1:]
-y_test_ans = y_data[last_valid_idx + 1:]
+print("Testing model...")
 y_test_pred = model.predict(X_test)
 test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
 print("Score on testing: " + str(test_score))
+
+
+"""
+Score on validation: {1: 0.57890876453647, 2: 0.6153404664370449, -1: 0.5185080224764415, -2: 0.5773728276281006}
+Score on testing: {1: 0.5765551773491067, 2: 0.6033518721855065, -1: 0.5167121897987447, -2: 0.5708423548589993}
+"""

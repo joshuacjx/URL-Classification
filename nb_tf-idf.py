@@ -116,3 +116,9 @@ print("Testing model...")
 y_test_pred = model.predict(X_test)
 test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
 print("Score on testing: " + str(test_score))
+
+
+"""
+Score on validation: {1: 0.9589250713715584, 2: 0.9578701028229283, -1: 0.94431662931199, -2: 0.9742006578675728}
+Score on testing: {1: 0.7645499376668291, 2: 0.8135451646743521, -1: 0.7248829115481308, -2: 0.8719596797064316}
+"""
