@@ -1,8 +1,8 @@
 import math
 import pandas as pd
-from sklearn.metrics import f1_score
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.metrics import roc_auc_score
 from sklearn.naive_bayes import MultinomialNB
 
 
@@ -24,6 +24,22 @@ class NaiveBayesTfIdfModel:
         X_test_counts = self.vectorizer.transform(X_test)
         X_test_tfidf = TfidfTransformer().fit_transform(X_test_counts)
         return self.multi_nb.predict(X_test_tfidf)
+
+
+def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
+    """
+    Source: https://stackoverflow.com/questions/39685740
+            /calculate-sklearn-roc-auc-score-for-multi-class
+    """
+    unique_class = set(actual_class)
+    roc_auc_dict = {}
+    for per_class in unique_class:
+        other_class = [x for x in unique_class if x != per_class]
+        new_actual_class = [0 if x in other_class else 1 for x in actual_class]
+        new_pred_class = [0 if x in other_class else 1 for x in pred_class]
+        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average = average)
+        roc_auc_dict[per_class] = roc_auc
+    return roc_auc_dict
 
 
 # Read URL data
@@ -48,19 +64,13 @@ print("Validation in progress...")
 X_valid = X_data[last_train_idx + 1:last_valid_idx]
 y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
 y_valid_pred = model.predict(X_valid)
-valid_score = f1_score(y_valid_ans, y_valid_pred, average='macro')
-print(INDENT + 'Score on validation = {}'.format(valid_score))
+valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
+print("Score on validation: " + str(valid_score))
 
 # Testing
 print("Testing in progress...")
 X_test = X_data[last_valid_idx + 1:]
 y_test_ans = y_data[last_valid_idx + 1:]
 y_test_pred = model.predict(X_test)
-test_score = f1_score(y_test_ans, y_test_pred, average='macro')
-print(INDENT + 'Score on testing = {}'.format(test_score))
-
-
-"""
-Score on validation = 0.9308420928127439
-Score on testing = 0.6775851446460903
-"""
+test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
+print("Score on testing: " + str(test_score))
