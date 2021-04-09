@@ -41,11 +41,7 @@ class NaiveBayesEmbedModel:
     def to_X_embed(self, X_data):
         X_each_word_embed = [[self.get_embed(word) for word in sentence]
                              for sentence in X_data]
-        X_aggregate = [np.concatenate(
-                        (np.asarray(vect_list).min(0),
-                        np.asarray(vect_list).max(0)),
-                        axis=None)
-            for vect_list in X_each_word_embed]
+        X_aggregate = [np.mean(vect_list, axis=0) for vect_list in X_each_word_embed]
         self.scaler.fit(X_aggregate)
         X_scaled = self.scaler.transform(X_aggregate)
         return X_scaled

@@ -1,7 +1,6 @@
 import math
 import numpy as np
 import pandas as pd
-
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sklearn.metrics import f1_score
@@ -24,8 +23,7 @@ class LemmaTokenizer(object):
 
 
 def train_model(model, X_train, y_train):
-    count_vect = CountVectorizer(ngram_range=(1, 2), max_df=0.75, min_df=5,
-                                 max_features=10000, tokenizer=LemmaTokenizer())
+    count_vect = CountVectorizer(ngram_range=(1, 4), tokenizer=LemmaTokenizer())
     x_train_counts = count_vect.fit_transform(X_train)
     x_train_tfidf = TfidfTransformer().fit_transform(x_train_counts).toarray()
     all_features = np.array(list(list(tfidf) for tfidf in x_train_tfidf)).T.tolist()

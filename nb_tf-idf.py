@@ -26,10 +26,10 @@ class NaiveBayesTfIdfModel:
 INDENT = '  '
 
 # Read URL data
+print("Reading data...")
 data = pd.read_csv('data/balanced_data.csv', header=None)
 X_data = [' '.join(parse(url)) for url in data[0].tolist()]
 y_data = data[1].tolist()
-
 part_ratio = (0.7, 0.2, 0.1)
 last_train_idx = math.floor(part_ratio[0] * len(X_data))
 last_valid_idx = last_train_idx + math.floor(part_ratio[1] * len(X_data))
@@ -37,20 +37,29 @@ last_valid_idx = last_train_idx + math.floor(part_ratio[1] * len(X_data))
 model = NaiveBayesTfIdfModel(min_n=1, max_n=4)
 
 # Training
+print("Training in progress...")
 X_train = X_data[:last_valid_idx]
 y_train = y_data[:last_valid_idx]
 model.train(X_train, y_train)
 
 # Validation
+print("Validation in progress...")
 X_valid = X_data[last_train_idx + 1:last_valid_idx]
 y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
 y_valid_pred = model.predict(X_valid)
 valid_score = f1_score(y_valid_ans, y_valid_pred, average='macro')
-print(INDENT + 'Score on validation = {}'.format(valid_score))
+print('Score on validation = {}'.format(valid_score))
 
 # Testing
+print("Testing in progress...")
 X_test = X_data[last_valid_idx + 1:]
 y_test_ans = y_data[last_valid_idx + 1:]
 y_test_pred = model.predict(X_test)
 test_score = f1_score(y_test_ans, y_test_pred, average='macro')
-print(INDENT + 'Score on testing = {}'.format(test_score))
+print('Score on testing = {}'.format(test_score))
+
+
+"""
+Score on validation = 0.9308420928127439
+Score on testing = 0.6775851446460903
+"""
