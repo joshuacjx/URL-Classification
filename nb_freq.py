@@ -1,6 +1,5 @@
 import math
 import pandas as pd
-from parser import parse
 from sklearn.metrics import f1_score
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -24,8 +23,8 @@ INDENT = '  '
 
 # Read URL data
 print("Reading data...")
-data = pd.read_csv('data/balanced_data.csv', header=None)
-X_data = [' '.join(parse(url)) for url in data[0].tolist()]
+data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
+X_data = data[0].tolist()
 y_data = data[1].tolist()
 part_ratio = (0.7, 0.2, 0.1)
 last_train_idx = math.floor(part_ratio[0] * len(X_data))

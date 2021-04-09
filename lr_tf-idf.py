@@ -7,7 +7,6 @@ from sklearn.metrics import f1_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
-from parser import parse
 
 
 INDENTATION = '  '
@@ -23,12 +22,12 @@ class LemmaTokenizer(object):
 
 
 def train_model(model, X_train, y_train):
+    print(INDENTATION + "Commence training...")
     count_vect = CountVectorizer(ngram_range=(1, 4), tokenizer=LemmaTokenizer())
     x_train_counts = count_vect.fit_transform(X_train)
     x_train_tfidf = TfidfTransformer().fit_transform(x_train_counts).toarray()
     all_features = np.array(list(list(tfidf) for tfidf in x_train_tfidf)).T.tolist()
     v = np.array(all_features).T
-    print(INDENTATION + "Commence training...")
     clf = model.fit(v, y_train)
     print(INDENTATION + "Finished training!")
     return clf, count_vect
@@ -45,10 +44,9 @@ def predict(model, count_vect, X_test):
 def run_model(path, partitioning_ratios):
     print("Running Logistic Regression model on " + path)
 
-    train = pd.read_csv(path, header=None)
-    raw_X_data = train[0].tolist()
-    X_data = [" ".join(parse(url)) for url in raw_X_data]
-    y_data = train[1].tolist()
+    data = pd.read_csv(path, header=None)
+    X_data = data[0].tolist()
+    y_data = data[1].tolist()
 
     num = len(X_data)
     last_train_idx = math.floor(partitioning_ratios[0] * num)
@@ -72,4 +70,4 @@ def run_model(path, partitioning_ratios):
     print(INDENTATION + 'Score on testing = {}'.format(test_score))
 
 
-run_model("data/balanced_data.csv", partitioning_ratios=(0.7, 0.2, 0.1))
+run_model("data/balanced_parsed_data.csv", partitioning_ratios=(0.7, 0.2, 0.1))
