@@ -72,14 +72,6 @@ def get_best_ngram_range(X_train, y_train, X_test, y_test_ans):
     return ranges[scores.index(max(scores))]
 
 
-"""
-get_best_params(X_data, y_data)
-print(get_best_ngram_range(X_train, y_train, X_test, y_test_ans))
-Best Hyper-parameters: {'alpha': 0.30000000000000004, 'fit_prior': True}
-Best ngram-range: (1, 2)
-"""
-
-
 INDENT = '  '
 
 # Read data
@@ -98,6 +90,13 @@ X_valid = X_data[last_train_idx + 1:last_valid_idx]
 y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
 X_test = X_data[last_valid_idx + 1:]
 y_test_ans = y_data[last_valid_idx + 1:]
+
+"""
+get_best_params(X_data, y_data)
+print(get_best_ngram_range(X_train, y_train, X_test, y_test_ans))
+Best Hyper-parameters: {'alpha': 0.30000000000000004, 'fit_prior': True}
+Best ngram-range: (1, 2)
+"""
 
 model = NaiveBayesTfIdfModel(alpha=0.3, fit_prior=True, ngram_range=(1, 2))
 

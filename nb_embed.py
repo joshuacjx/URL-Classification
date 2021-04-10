@@ -83,12 +83,6 @@ def get_best_params(X_data, y_data):
     print('Best Hyper-parameters: %s' % result.best_params_)
 
 
-"""
-get_best_params(X_data, y_data)
-Best Hyper-parameters: {'alpha': 0.30000000000000004, 'fit_prior': False}
-"""
-
-
 INDENT = '  '
 
 # Read data
@@ -108,7 +102,12 @@ y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
 X_test = X_data[last_valid_idx + 1:]
 y_test_ans = y_data[last_valid_idx + 1:]
 
-model = NaiveBayesEmbedModel(alpha=0.3, fit_prior=True)
+"""
+get_best_params(X_data, y_data)
+Best Hyper-parameters: {'alpha': 0.30000000000000004, 'fit_prior': False}
+"""
+
+model = NaiveBayesEmbedModel(alpha=0.3, fit_prior=False)
 
 # Training
 print("Training model...")
@@ -128,6 +127,6 @@ print("Score on testing: " + str(test_score))
 
 
 """
-Score on validation: {1: 0.57890876453647, 2: 0.6153404664370449, -1: 0.5185080224764415, -2: 0.5773728276281006}
-Score on testing: {1: 0.5765551773491067, 2: 0.6033518721855065, -1: 0.5167121897987447, -2: 0.5708423548589993}
+Score on validation: {1: 0.5774625704302276, 2: 0.616150407663407, -1: 0.5183344126293361, -2: 0.5775913758536204}
+Score on testing: {1: 0.5757167330529608, 2: 0.6040041848963287, -1: 0.5182806424034051, -2: 0.5731691362031742}
 """
