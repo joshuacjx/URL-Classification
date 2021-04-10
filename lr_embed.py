@@ -5,9 +5,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 
 
-INDENT = '  '
-
-
 class LogisticRegressionEmbedModel:
     def __init__(self, penalty):
         self.logistic_reg = LogisticRegression(max_iter=5000, penalty=penalty, solver='saga')
@@ -59,36 +56,65 @@ def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
     return roc_auc_dict
 
 
-# Read URL data
+def get_best_params(X_data, y_data):
+    from sklearn.model_selection import RepeatedStratifiedKFold
+    from sklearn.model_selection import GridSearchCV
+    tuning_model = LogisticRegression()
+    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+    space = dict()
+    space['solver'] = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
+    space['penalty'] = ['none', 'l1', 'l2', 'elasticnet']
+    space['C'] = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100]
+    search = GridSearchCV(tuning_model, space, scoring='accuracy', n_jobs=-1, cv=cv)
+    X_train_embed = LogisticRegressionEmbedModel(penalty='l1').to_X_embed(X_data)
+    result = search.fit(X_train_embed, y_data)
+    print('Best Score: %s' % result.best_score_)
+    print('Best Hyper-parameters: %s' % result.best_params_)
+
+
+INDENT = '  '
+
+# Read data
 print("Reading data...")
 MAX_DATA = 10000
 data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
 X_data = data[0].tolist()[:MAX_DATA]
 y_data = data[1].tolist()[:MAX_DATA]
+
+
+"""
+get_best_params(X_data, y_data)
+Best Score: 0.40686666666666665
+Best Hyper-parameters: {'C': 100, 'penalty': 'none', 'solver': 'sag'}
+"""
+
+
+# Partition data
 part_ratio = (0.7, 0.2, 0.1)
 last_train_idx = math.floor(part_ratio[0] * len(X_data))
 last_valid_idx = last_train_idx + math.floor(part_ratio[1] * len(X_data))
+X_train = X_data[:last_valid_idx]
+y_train = y_data[:last_valid_idx]
+X_valid = X_data[last_train_idx + 1:last_valid_idx]
+y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
+X_test = X_data[last_valid_idx + 1:]
+y_test_ans = y_data[last_valid_idx + 1:]
 
 model = LogisticRegressionEmbedModel(penalty='l1')
 
 # Training
-print("Training in progress...")
-X_train = X_data[:last_valid_idx]
-y_train = y_data[:last_valid_idx]
+print("Training model...")
 model.train(X_train, y_train)
 
 # Validation
-print("Validation in progress...")
-X_valid = X_data[last_train_idx + 1:last_valid_idx]
-y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
+print("Validating model...")
 y_valid_pred = model.predict(X_valid)
 valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
 print("Score on validation: " + str(valid_score))
 
 # Testing
-print("Testing in progress...")
-X_test = X_data[last_valid_idx + 1:]
-y_test_ans = y_data[last_valid_idx + 1:]
+print("Testing model...")
 y_test_pred = model.predict(X_test)
 test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
 print("Score on testing: " + str(test_score))
+

@@ -56,6 +56,13 @@ def get_best_params(X_data, y_data):
     print('Best Hyper-parameters: %s' % result.best_params_)
 
 
+"""
+get_best_params(X_data, y_data)
+Best Score: 0.6106666666666668
+Best Hyper-parameters: {'C': 100, 'penalty': 'l1', 'solver': 'saga'}
+"""
+
+
 INDENT = '  '
 
 # Read data
@@ -64,14 +71,6 @@ MAX_DATA = 10000
 data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
 X_data = data[0].tolist()[:MAX_DATA]
 y_data = data[1].tolist()[:MAX_DATA]
-
-
-"""
-get_best_params(X_data, y_data)
-Best Score: 0.6106666666666668
-Best Hyper-parameters: {'C': 100, 'penalty': 'l1', 'solver': 'saga'}
-"""
-
 
 # Partition data
 part_ratio = (0.7, 0.2, 0.1)
