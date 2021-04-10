@@ -7,8 +7,8 @@ from sklearn.feature_extraction.text import TfidfTransformer
 
 
 class LogisticRegressionTfIdfModel:
-    def __init__(self, ngram_range, penalty):
-        self.logistic_reg = LogisticRegression(max_iter=5000, penalty=penalty, solver='saga', C=1.0)
+    def __init__(self, C, penalty, solver, ngram_range):
+        self.logistic_reg = LogisticRegression(max_iter=5000, penalty=penalty, solver=solver, C=C)
         self.vectorizer = CountVectorizer(ngram_range=ngram_range, max_df=0.75, min_df=5, max_features=10000)
         self.transformer = TfidfTransformer()
 
@@ -56,13 +56,6 @@ def get_best_params(X_data, y_data):
     print('Best Hyper-parameters: %s' % result.best_params_)
 
 
-"""
-get_best_params(X_data, y_data)
-Best Score: 0.6106666666666668
-Best Hyper-parameters: {'C': 100, 'penalty': 'l1', 'solver': 'saga'}
-"""
-
-
 INDENT = '  '
 
 # Read data
@@ -71,6 +64,13 @@ MAX_DATA = 10000
 data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
 X_data = data[0].tolist()[:MAX_DATA]
 y_data = data[1].tolist()[:MAX_DATA]
+
+"""
+# Parameter Tuning
+get_best_params(X_data, y_data)
+Best Score: 0.6106666666666668
+Best Hyper-parameters: {'C': 100, 'penalty': 'l1', 'solver': 'saga'}
+"""
 
 # Partition data
 part_ratio = (0.7, 0.2, 0.1)
@@ -83,7 +83,7 @@ y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
 X_test = X_data[last_valid_idx + 1:]
 y_test_ans = y_data[last_valid_idx + 1:]
 
-model = LogisticRegressionTfIdfModel(ngram_range=(1, 2), penalty='l1')
+model = LogisticRegressionTfIdfModel(C=100, penalty='l1', solver='saga', ngram_range=(1, 2))
 
 # Training
 print("Training model...")
@@ -101,8 +101,7 @@ y_test_pred = model.predict(X_test)
 test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
 print("Score on testing: " + str(test_score))
 
-
 """
-Score on validation: {1: 0.7449010685410149, 2: 0.7614787672721371, -2: 0.8215927010014088, -1: 0.6847571459273587}
-Score on testing: {1: 0.7046265060240964, 2: 0.7679032691353943, -2: 0.7911010558069381, -1: 0.6672768599858004}
+Score on validation: {1: 0.8191172686520674, 2: 0.8369411227473667, -2: 0.872308920969973, -1: 0.7645430367504836}
+Score on testing: {1: 0.6852128514056225, 2: 0.7296014837163167, -2: 0.7831322272498743, -1: 0.633714461316746}
 """

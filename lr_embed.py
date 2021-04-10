@@ -6,8 +6,8 @@ from sklearn.metrics import roc_auc_score
 
 
 class LogisticRegressionEmbedModel:
-    def __init__(self, penalty):
-        self.logistic_reg = LogisticRegression(max_iter=5000, penalty=penalty, solver='saga')
+    def __init__(self, C, penalty, solver):
+        self.logistic_reg = LogisticRegression(max_iter=5000, penalty=penalty, solver=solver, C=C)
         self.embeds = dict()
         self.embeds = dict()
         self.load_embeds()
@@ -81,13 +81,12 @@ data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
 X_data = data[0].tolist()[:MAX_DATA]
 y_data = data[1].tolist()[:MAX_DATA]
 
-
 """
+# Parameter Tuning
 get_best_params(X_data, y_data)
 Best Score: 0.40686666666666665
 Best Hyper-parameters: {'C': 100, 'penalty': 'none', 'solver': 'sag'}
 """
-
 
 # Partition data
 part_ratio = (0.7, 0.2, 0.1)
@@ -100,7 +99,7 @@ y_valid_ans = y_data[last_train_idx + 1:last_valid_idx]
 X_test = X_data[last_valid_idx + 1:]
 y_test_ans = y_data[last_valid_idx + 1:]
 
-model = LogisticRegressionEmbedModel(penalty='l1')
+model = LogisticRegressionEmbedModel(C=100, penalty='none', solver='sag')
 
 # Training
 print("Training model...")
@@ -118,3 +117,7 @@ y_test_pred = model.predict(X_test)
 test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
 print("Score on testing: " + str(test_score))
 
+"""
+Score on validation: {1: 0.5895800322322892, 2: 0.614440373130428, -2: 0.6460990658443447, -1: 0.5542230818826563}
+Score on testing: {1: 0.6074698795180724, 2: 0.6189039510662919, -2: 0.662770236299648, -1: 0.5574632559420996}
+"""
