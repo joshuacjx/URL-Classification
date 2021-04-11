@@ -9,6 +9,7 @@ from keras.layers import LSTM, Dense, Dropout, Masking, Embedding
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
 from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 
@@ -16,6 +17,21 @@ from sklearn.model_selection import GridSearchCV
 
 np.random.seed(42)
 tf.random.set_seed(42)
+
+def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
+    """
+        Source: https://stackoverflow.com/questions/39685740/
+                calculate-sklearn-roc-auc-score-for-multi-class
+    """
+    unique_class = set(actual_class)
+    roc_auc_dict = {}
+    for per_class in unique_class:
+        other_class = [x for x in unique_class if x != per_class]
+        new_actual_class = [0 if x in other_class else 1 for x in actual_class]
+        new_pred_class = [0 if x in other_class else 1 for x in pred_class]
+        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average = average)
+        roc_auc_dict[per_class] = roc_auc
+    return roc_auc_dict
 
 def get_word_freq_and_word_rep(data):
     word_freq = {}
@@ -98,13 +114,15 @@ print('Finished building embedding matrix with {:.4f} of vocabulary covered.'.fo
 def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3):
     model = Sequential()
     model.add(Embedding(vocab_size, embedding_dim, input_length=maxlen, weights=[embedding_matrix], trainable=False))
-    # Masking layer for pre-trained embeddings
     model.add(Masking(mask_value=0.0))
+    
     # Recurrent layer
     model.add(LSTM(128, return_sequences=True)) #LSTM layer with 32 neurons
     model.add(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout))
+    # with bidirectional gate
+    # model.add(Bidirectional(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout)))
+    
     model.add(Dropout(0.1))
-    # Fully connected layer
     model.add(Dense(n_dense_1, activation='relu'))
     model.add(Dense(n_dense_2, activation='relu'))
     # model.add(Dense(n_dense_3, activation='relu'))
@@ -157,8 +175,14 @@ model = build_model(0.2, 0.2, 32, 8, 8)
 # Create callbacks
 callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
 # , ModelCheckpoint('../models/model.h5', save_best_only=True, save_weights_only=False)]
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=7, verbose=1, callbacks=callbacks)
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=1, verbose=1, callbacks=callbacks)
+
 loss, score = model.evaluate(X_train, y_train, verbose=False)
 print('Training Score: {:.4f}'.format(score))
 loss, score = model.evaluate(X_test, y_test, verbose=False)
 print('Testing Score:  {:.4f}'.format(score))
+
+# y_val = model.predict(X_train)
+# y_pred = model.predict(X_test)
+# print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_train.tolist(), y_val.tolist())))
+# print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_test.tolist(), y_pred.tolist())))
