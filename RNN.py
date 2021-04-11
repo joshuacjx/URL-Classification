@@ -5,15 +5,13 @@ import tensorflow as tf
 from keras import layers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.models import Sequential
-from keras.layers import LSTM, Dense, Dropout, Masking, Embedding
+from keras.layers import LSTM, Dense, Dropout, Masking, Embedding, Bidirectional
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
-
-# print(tf.__version__)
 
 np.random.seed(42)
 tf.random.set_seed(42)
@@ -110,7 +108,7 @@ def build_embedding_matrix(vocab_index_dict):
 embedding_matrix = build_embedding_matrix(vocab_index_dict)
 print('Finished building embedding matrix with {:.4f} of vocabulary covered.'.format(np.count_nonzero(np.count_nonzero(embedding_matrix, axis=1)) / vocab_size))
 
-# build CNN model
+# build RNN model
 def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3):
     model = Sequential()
     model.add(Embedding(vocab_size, embedding_dim, input_length=maxlen, weights=[embedding_matrix], trainable=False))
@@ -118,9 +116,9 @@ def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3
     
     # Recurrent layer
     model.add(LSTM(128, return_sequences=True)) #LSTM layer with 32 neurons
-    model.add(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout))
+    # model.add(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout))
     # with bidirectional gate
-    # model.add(Bidirectional(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout)))
+    model.add(Bidirectional(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout)))
     
     model.add(Dropout(0.1))
     model.add(Dense(n_dense_1, activation='relu'))
@@ -152,30 +150,13 @@ def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3
 
 # train model
 
-#change filters and nodes in dense layer
-# model = build_model(512, 2, 3, 0.2, 128, 64, 32) # Training Score: 0.9659 Testing Score:  0.9127
-# model = build_model(512, 2, 3, 0.2, 64, 32, 16) # Training Score: 0.9582 Testing Score:  0.9123
-# model = build_model(512, 2, 3, 0.2, 128, 32, 8) # Training Score: 0.9634 Testing Score:  0.9124 good at epoch 7
-# model = build_model(512, 2, 3, 0.2, 256, 64, 16) # Training Score: 0.9712 Testing Score:  0.9117 good then bad
-# model = build_model(256, 2, 3, 0.2, 128, 64, 32) # Training Score: 0.9530 Testing Score:  0.9124 good 
-# model = build_model(256, 2, 3, 0.2, 128, 64, 16) # Training Score: 0.9541 Testing Score:  0.9124 good
-# model = build_model(256, 2, 3, 0.2, 128, 64, 8) # Training Score: 0.9544 Testing Score:  0.9131 soso
-# model = build_model(256, 2, 3, 0.2, 128, 32, 16) # Training Score: 0.9526 Testing Score:  0.9124 soso
-# model = build_model(256, 2, 3, 0.2, 128, 32, 8) # Training Score: 0.9541 Testing Score:  0.9119 not good
-# model = build_model(256, 2, 3, 0.2, 64, 32, 16) # Training Score: 0.9466 Testing Score:  0.9139 
-# model = build_model(256, 2, 3, 0.2, 64, 32, 8) # Training Score: 0.9486 Testing Score:  0.9127 soso 
-# model = build_model(256, 2, 3, 0.2, 64, 16, 8) # Training Score: 0.9469 Testing Score:  0.9126
-# model = build_model(256, 2, 3, 0.2, 32, 16, 8) # Training Score: 0.9410 Testing Score:  0.9121
-
+#change dropout rates and nodes in dense layer
 model = build_model(0.2, 0.2, 32, 8, 8)
-
-# current best: 64, 32, 16, 8 Training Score: 0.9105 Testing Score:  0.9118
-# Training Score: 0.9185, Testing Score:  0.9203
 
 # Create callbacks
 callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
-# , ModelCheckpoint('../models/model.h5', save_best_only=True, save_weights_only=False)]
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=1, verbose=1, callbacks=callbacks)
+# ModelCheckpoint('../models/model.h5', save_best_only=True, save_weights_only=False)]
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, verbose=1, callbacks=callbacks)
 
 loss, score = model.evaluate(X_train, y_train, verbose=False)
 print('Training Score: {:.4f}'.format(score))
@@ -186,3 +167,13 @@ print('Testing Score:  {:.4f}'.format(score))
 # y_pred = model.predict(X_test)
 # print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_train.tolist(), y_val.tolist())))
 # print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_test.tolist(), y_pred.tolist())))
+
+'''
+without gate
+Training Score: 0.9237
+Testing Score:  0.9252
+
+with gate
+Training Score: 0.9276
+Testing Score:  0.9290
+'''
