@@ -21,7 +21,7 @@ def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
         Source: https://stackoverflow.com/questions/39685740/
                 calculate-sklearn-roc-auc-score-for-multi-class
     """
-    unique_class = set(actual_class)
+    unique_class = [[0,0,0,1], [0,0,1,0], [0,1,0,0], [1,0,0,0]]
     roc_auc_dict = {}
     for per_class in unique_class:
         other_class = [x for x in unique_class if x != per_class]
@@ -156,17 +156,17 @@ model = build_model(0.2, 0.2, 32, 8, 8)
 # Create callbacks
 callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
 # ModelCheckpoint('../models/model.h5', save_best_only=True, save_weights_only=False)]
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, verbose=1, callbacks=callbacks)
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=1, verbose=1, callbacks=callbacks)
 
-loss, score = model.evaluate(X_train, y_train, verbose=False)
-print('Training Score: {:.4f}'.format(score))
-loss, score = model.evaluate(X_test, y_test, verbose=False)
-print('Testing Score:  {:.4f}'.format(score))
+# loss, score = model.evaluate(X_train, y_train, verbose=False)
+# print('Training Score: {:.4f}'.format(score))
+# loss, score = model.evaluate(X_test, y_test, verbose=False)
+# print('Testing Score:  {:.4f}'.format(score))
 
-# y_val = model.predict(X_train)
-# y_pred = model.predict(X_test)
-# print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_train.tolist(), y_val.tolist())))
-# print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_test.tolist(), y_pred.tolist())))
+y_val = model.predict(X_train)
+y_pred = model.predict(X_test)
+print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_train, y_val)))
+print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_test, y_pred)))
 
 '''
 without gate
