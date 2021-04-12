@@ -136,17 +136,20 @@ model = build_model(0.2, 0.2, 32, 8, 8)
 # Create callbacks
 callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
 # ModelCheckpoint('../models/model.h5', save_best_only=True, save_weights_only=False)]
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=1, verbose=1, callbacks=callbacks)
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, verbose=1, callbacks=callbacks)
 
 # get scores for validation and test, labels should be in one-hot vector
 y_val = model.predict(X_train)
 y_pred = model.predict(X_test)
-score1 = roc_auc_score(y_train, y_val, average = None, multi_class='ovr')
+score1 = roc_auc_score(y_train, y_val, average = None, multi_class='ovo')
 score2 = roc_auc_score(y_test, y_pred, average = None, multi_class='ovo')
 print('Training Score: ' + str(score1))
 print('Test Score: ' + str(score2))
 
 '''
+epoch = 1 [0.92106882 0.79751137 0.84613131 0.86359313]
+
+
 without gate
 Training Score: 0.9237
 Testing Score:  0.9252
