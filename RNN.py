@@ -16,21 +16,6 @@ from sklearn.model_selection import GridSearchCV
 np.random.seed(42)
 tf.random.set_seed(42)
 
-def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
-    """
-        Source: https://stackoverflow.com/questions/39685740/
-                calculate-sklearn-roc-auc-score-for-multi-class
-    """
-    unique_class = [[0,0,0,1], [0,0,1,0], [0,1,0,0], [1,0,0,0]]
-    roc_auc_dict = {}
-    for per_class in unique_class:
-        other_class = [x for x in unique_class if x != per_class]
-        new_actual_class = [0 if x in other_class else 1 for x in actual_class]
-        new_pred_class = [0 if x in other_class else 1 for x in pred_class]
-        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average = average)
-        roc_auc_dict[per_class] = roc_auc
-    return roc_auc_dict
-
 def get_word_freq_and_word_rep(data):
     word_freq = {}
     word_rep = []
@@ -60,7 +45,7 @@ def get_vocab_index_rep(word_rep, vocab_index_dict):
         vocab_index_rep.append([word_to_index(word, vocab_index_dict) for word in rep])
     return vocab_index_rep
 
-df = pd.read_csv('data/balanced_data.csv', header=None) 
+df = pd.read_csv('data/balanced_data_3210.csv', header=None) 
 X_train, X_test, y_train, y_test = train_test_split(df[0].tolist(), np.array(df[1].tolist(), dtype=np.int), test_size=0.2, random_state=42)
 y_train = to_categorical(y_train, 4)
 y_test = to_categorical(y_test, 4)
@@ -77,10 +62,7 @@ maxlen = 10
 X_train = pad_sequences(X_train, padding='post', maxlen=maxlen)
 X_test = pad_sequences(X_test, padding='post', maxlen=maxlen)
 
-
 print('Finished preprocessing.')
-
-# use vocab_index_dict to build word embedding matrix
 
 embedding_dim = 50
 
@@ -148,9 +130,7 @@ def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3
 # test_score = grid.score(X_test, y_test)
 # print('Test score: %f' % test_score)
 
-# train model
-
-#change dropout rates and nodes in dense layer
+# train model, change dropout rates and nodes in dense layer
 model = build_model(0.2, 0.2, 32, 8, 8)
 
 # Create callbacks
@@ -158,15 +138,13 @@ callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
 # ModelCheckpoint('../models/model.h5', save_best_only=True, save_weights_only=False)]
 model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=1, verbose=1, callbacks=callbacks)
 
-# loss, score = model.evaluate(X_train, y_train, verbose=False)
-# print('Training Score: {:.4f}'.format(score))
-# loss, score = model.evaluate(X_test, y_test, verbose=False)
-# print('Testing Score:  {:.4f}'.format(score))
-
+# get scores for validation and test, labels should be in one-hot vector
 y_val = model.predict(X_train)
 y_pred = model.predict(X_test)
-print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_train, y_val)))
-print('Training Score: {:.4f}'.format(roc_auc_score_multiclass(y_test, y_pred)))
+score1 = roc_auc_score(y_train, y_val, average = None, multi_class='ovr')
+score2 = roc_auc_score(y_test, y_pred, average = None, multi_class='ovo')
+print('Training Score: ' + str(score1))
+print('Test Score: ' + str(score2))
 
 '''
 without gate
