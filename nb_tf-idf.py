@@ -77,8 +77,8 @@ INDENT = '  '
 # Read data
 print("Reading data...")
 data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
-X_data = data[0].tolist()
-y_data = data[1].tolist()
+X_data = data[0].tolist()[:100]
+y_data = data[1].tolist()[:100]
 
 # Partition data
 part_ratio = (0.7, 0.2, 0.1)
