@@ -97,15 +97,15 @@ def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3
     model.add(Masking(mask_value=0.0))
     
     # Recurrent layer
-    model.add(LSTM(128, return_sequences=True)) #LSTM layer with 32 neurons
+    # model.add(LSTM(128, return_sequences=True))
     # model.add(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout))
     # with bidirectional gate
     model.add(Bidirectional(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout)))
     
-    model.add(Dropout(0.1))
+    # model.add(Dropout(0.1))
     model.add(Dense(n_dense_1, activation='relu'))
     model.add(Dense(n_dense_2, activation='relu'))
-    # model.add(Dense(n_dense_3, activation='relu'))
+    model.add(Dense(n_dense_3, activation='relu'))
     model.add(layers.Dense(4, activation='softmax'))
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=[tf.keras.metrics.AUC()])
         # metrics=['accuracy'])
@@ -131,12 +131,12 @@ def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3
 # print('Test score: %f' % test_score)
 
 # train model, change dropout rates and nodes in dense layer
-model = build_model(0.2, 0.2, 32, 8, 8)
+model = build_model(0.2, 0.2, 32, 16, 8)
 
 # Create callbacks
 callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
 # ModelCheckpoint('../models/model.h5', save_best_only=True, save_weights_only=False)]
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, verbose=1, callbacks=callbacks)
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=50, verbose=1, callbacks=callbacks)
 
 # get scores for validation and test, labels should be in one-hot vector
 y_val = model.predict(X_train)
@@ -147,14 +147,22 @@ print('Training Score: ' + str(score1))
 print('Test Score: ' + str(score2))
 
 '''
-epoch = 1 [0.92106882 0.79751137 0.84613131 0.86359313]
-
-
+epoch = 10 
+R: 128 64, D: 32, 8
 without gate
-Training Score: 0.9237
-Testing Score:  0.9252
+Training Score: [0.97260869 0.9097496  0.93526084 0.95251548]
+Test Score: [0.94137129 0.82715933 0.86920181 0.88803467]
 
 with gate
-Training Score: 0.9276
-Testing Score:  0.9290
+Training Score: [0.9752866  0.91479725 0.93969579 0.95414356]
+Test Score: [0.93902991 0.82900618 0.87039235 0.88805683]
+
+R:64 D: 32, 16, 8 with gate epoch = 20
+Training Score: [0.95900786 0.87233514 0.90697067 0.92530187]
+Test Score: [0.94181862 0.83278358 0.87534123 0.89222665]
+
+without drop out 0.1: epoch stops at 22 R:64 D: 32, 16, 8 
+Training Score: [0.96255468 0.88018314 0.91255899 0.93061194]
+Test Score: [0.94213832 0.8325654  0.87376838 0.88931592]
+
 '''
