@@ -41,22 +41,6 @@ class LogisticRegressionEmbedModel:
         return self.logistic_reg.predict(X_test_embed)
 
 
-def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
-    """
-        Source: https://stackoverflow.com/questions/39685740/
-                calculate-sklearn-roc-auc-score-for-multi-class
-    """
-    unique_class = set(actual_class)
-    roc_auc_dict = {}
-    for per_class in unique_class:
-        other_class = [x for x in unique_class if x != per_class]
-        new_actual_class = [0 if x in other_class else 1 for x in actual_class]
-        new_pred_class = [0 if x in other_class else 1 for x in pred_class]
-        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average = average)
-        roc_auc_dict[per_class] = roc_auc
-    return roc_auc_dict
-
-
 def get_best_params(X_data, y_data):
     from sklearn.model_selection import RepeatedStratifiedKFold
     from sklearn.model_selection import GridSearchCV
