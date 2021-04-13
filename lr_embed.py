@@ -1,8 +1,9 @@
 import math
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+from keras.utils import to_categorical
 from sklearn.metrics import roc_auc_score
+from sklearn.linear_model import LogisticRegression
 
 
 class LogisticRegressionEmbedModel:
@@ -40,22 +41,6 @@ class LogisticRegressionEmbedModel:
         return self.logistic_reg.predict(X_test_embed)
 
 
-def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
-    """
-        Source: https://stackoverflow.com/questions/39685740/
-                calculate-sklearn-roc-auc-score-for-multi-class
-    """
-    unique_class = set(actual_class)
-    roc_auc_dict = {}
-    for per_class in unique_class:
-        other_class = [x for x in unique_class if x != per_class]
-        new_actual_class = [0 if x in other_class else 1 for x in actual_class]
-        new_pred_class = [0 if x in other_class else 1 for x in pred_class]
-        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average = average)
-        roc_auc_dict[per_class] = roc_auc
-    return roc_auc_dict
-
-
 def get_best_params(X_data, y_data):
     from sklearn.model_selection import RepeatedStratifiedKFold
     from sklearn.model_selection import GridSearchCV
@@ -76,10 +61,12 @@ INDENT = '  '
 
 # Read data
 print("Reading data...")
-MAX_DATA = 10000
-data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
-X_data = data[0].tolist()[:MAX_DATA]
-y_data = data[1].tolist()[:MAX_DATA]
+# MAX_DATA = 10000
+data = pd.read_csv('data/balanced_parsed_data_3210.csv', header=None)
+X_data = data[0].tolist()
+y_data = data[1].tolist()
+# X_data = data[0].tolist()[:MAX_DATA]
+# y_data = data[1].tolist()[:MAX_DATA]
 
 """
 # Parameter Tuning
@@ -108,16 +95,21 @@ model.train(X_train, y_train)
 # Validation
 print("Validating model...")
 y_valid_pred = model.predict(X_valid)
-valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
+valid_score = roc_auc_score(to_categorical(y_valid_ans, 4),
+                            to_categorical(y_valid_pred, 4),
+                            average=None, multi_class='ovo')
 print("Score on validation: " + str(valid_score))
 
 # Testing
 print("Testing model...")
 y_test_pred = model.predict(X_test)
-test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
+test_score = roc_auc_score(to_categorical(y_test_ans, 4),
+                           to_categorical(y_test_pred, 4),
+                           average=None, multi_class='ovo')
 print("Score on testing: " + str(test_score))
 
+
 """
-Score on validation: {1: 0.5895800322322892, 2: 0.614440373130428, -2: 0.6460990658443447, -1: 0.5542230818826563}
-Score on testing: {1: 0.6074698795180724, 2: 0.6189039510662919, -2: 0.662770236299648, -1: 0.5574632559420996}
+Score on validation: [0.63913039 0.56269788 0.59467889 0.63709356]
+Score on testing: [0.64239645 0.56107815 0.58841978 0.62895424]
 """

@@ -1,7 +1,8 @@
 import math
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+from keras.utils import to_categorical
 from sklearn.metrics import roc_auc_score
+from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
@@ -21,22 +22,6 @@ class LogisticRegressionTfIdfModel:
         x_train_counts = self.vectorizer.transform(X_test)
         x_train_tfidf = TfidfTransformer().fit_transform(x_train_counts).toarray()
         return self.logistic_reg.predict(x_train_tfidf)
-
-
-def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
-    """
-        Source: https://stackoverflow.com/questions/39685740/
-                calculate-sklearn-roc-auc-score-for-multi-class
-    """
-    unique_class = set(actual_class)
-    roc_auc_dict = {}
-    for per_class in unique_class:
-        other_class = [x for x in unique_class if x != per_class]
-        new_actual_class = [0 if x in other_class else 1 for x in actual_class]
-        new_pred_class = [0 if x in other_class else 1 for x in pred_class]
-        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average = average)
-        roc_auc_dict[per_class] = roc_auc
-    return roc_auc_dict
 
 
 def get_best_params(X_data, y_data):
@@ -61,7 +46,7 @@ INDENT = '  '
 # Read data
 print("Reading data...")
 MAX_DATA = 10000
-data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
+data = pd.read_csv('data/balanced_parsed_data_3210.csv', header=None)
 X_data = data[0].tolist()[:MAX_DATA]
 y_data = data[1].tolist()[:MAX_DATA]
 
@@ -92,16 +77,21 @@ model.train(X_train, y_train)
 # Validation
 print("Validating model...")
 y_valid_pred = model.predict(X_valid)
-valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
+valid_score = roc_auc_score(to_categorical(y_valid_ans, 4),
+                            to_categorical(y_valid_pred, 4),
+                            average=None, multi_class='ovo')
 print("Score on validation: " + str(valid_score))
 
 # Testing
 print("Testing model...")
 y_test_pred = model.predict(X_test)
-test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
+test_score = roc_auc_score(to_categorical(y_test_ans, 4),
+                           to_categorical(y_test_pred, 4),
+                           average=None, multi_class='ovo')
 print("Score on testing: " + str(test_score))
 
+
 """
-Score on validation: {1: 0.8191172686520674, 2: 0.8369411227473667, -2: 0.872308920969973, -1: 0.7645430367504836}
-Score on testing: {1: 0.6852128514056225, 2: 0.7296014837163167, -2: 0.7831322272498743, -1: 0.633714461316746}
+Score on validation: [0.88632221 0.78718169 0.80864246 0.85150966]
+Score on testing: [0.75636234 0.63769476 0.66917075 0.72316017]
 """

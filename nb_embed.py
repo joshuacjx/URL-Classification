@@ -1,18 +1,10 @@
 import math
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
+from keras.utils import to_categorical
 from sklearn.metrics import roc_auc_score
 from sklearn.naive_bayes import MultinomialNB
-
-
-"""
-One simple technique that seems to work reasonably well for short texts 
-(e.g., a sentence or a tweet) is to compute the vector for each word in 
-the document, and then aggregate them using the coordinate-wise mean, min, or max.
-Source: https://stats.stackexchange.com/questions/221715/apply-word-embeddings-to-
-        entire-document-to-get-a-feature-vector
-"""
+from sklearn.preprocessing import MinMaxScaler
 
 
 class NaiveBayesEmbedModel:
@@ -38,7 +30,7 @@ class NaiveBayesEmbedModel:
     def to_X_embed_scaled(self, X_data):
         X_each_word_embed = [[self.get_embed(word) for word in sentence]
                              for sentence in X_data]
-        X_aggregate = [np.mean(vect_list, axis=0) for vect_list in X_each_word_embed]
+        X_aggregate = [np.max(vect_list, axis=0) for vect_list in X_each_word_embed]
         self.scaler.fit(X_aggregate)
         X_scaled = self.scaler.transform(X_aggregate)
         return X_scaled
@@ -50,22 +42,6 @@ class NaiveBayesEmbedModel:
     def predict(self, X_test):
         X_test_embed = self.to_X_embed_scaled(X_test)
         return self.multi_nb.predict(X_test_embed)
-
-
-def roc_auc_score_multiclass(actual_class, pred_class, average="macro"):
-    """
-        Source: https://stackoverflow.com/questions/39685740/
-                calculate-sklearn-roc-auc-score-for-multi-class
-    """
-    unique_class = set(actual_class)
-    roc_auc_dict = {}
-    for per_class in unique_class:
-        other_class = [x for x in unique_class if x != per_class]
-        new_actual_class = [0 if x in other_class else 1 for x in actual_class]
-        new_pred_class = [0 if x in other_class else 1 for x in pred_class]
-        roc_auc = roc_auc_score(new_actual_class, new_pred_class, average=average)
-        roc_auc_dict[per_class] = roc_auc
-    return roc_auc_dict
 
 
 def get_best_params(X_data, y_data):
@@ -87,7 +63,7 @@ INDENT = '  '
 
 # Read data
 print("Reading data...")
-data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
+data = pd.read_csv('data/balanced_parsed_data_3210.csv', header=None)
 X_data = data[0].tolist()
 y_data = data[1].tolist()
 
@@ -116,17 +92,21 @@ model.train(X_train, y_train)
 # Validation
 print("Validating model...")
 y_valid_pred = model.predict(X_valid)
-valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
+valid_score = roc_auc_score(to_categorical(y_valid_ans, 4),
+                            to_categorical(y_valid_pred, 4),
+                            average=None, multi_class='ovo')
 print("Score on validation: " + str(valid_score))
 
 # Testing
 print("Testing model...")
 y_test_pred = model.predict(X_test)
-test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
+test_score = roc_auc_score(to_categorical(y_test_ans, 4),
+                           to_categorical(y_test_pred, 4),
+                           average=None, multi_class='ovo')
 print("Score on testing: " + str(test_score))
 
 
 """
-Score on validation: {1: 0.5774625704302276, 2: 0.616150407663407, -1: 0.5183344126293361, -2: 0.5775913758536204}
-Score on testing: {1: 0.5757167330529608, 2: 0.6040041848963287, -1: 0.5182806424034051, -2: 0.5731691362031742}
+Score on validation: [0.60900914 0.52365851 0.55656973 0.61359097]
+Score on testing: [0.61151349 0.52140723 0.55730982 0.60641726]
 """
