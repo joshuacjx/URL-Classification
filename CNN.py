@@ -9,6 +9,8 @@ from keras.utils import to_categorical
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import roc_auc_score
+from keras.callbacks import EarlyStopping
 
 np.random.seed(42)
 tf.random.set_seed(42)
@@ -42,7 +44,7 @@ def get_vocab_index_rep(word_rep, vocab_index_dict):
         vocab_index_rep.append([word_to_index(word, vocab_index_dict) for word in rep])
     return vocab_index_rep
 
-df = pd.read_csv('data/balanced_data.csv', header=None) 
+df = pd.read_csv('data/balanced_data_3210.csv', header=None) 
 X_train, X_test, y_train, y_test = train_test_split(df[0].tolist(), np.array(df[1].tolist(), dtype=np.int), test_size=0.2, random_state=42)
 y_train = to_categorical(y_train, 4)
 y_test = to_categorical(y_test, 4)
@@ -55,7 +57,15 @@ X_train = get_vocab_index_rep(X_train_word_rep, vocab_index_dict)
 X_test_word_freq, X_test_word_rep = get_word_freq_and_word_rep(X_test)
 X_test = get_vocab_index_rep(X_test_word_rep, vocab_index_dict)
 
-maxlen = 10
+maxlen = 19
+# 20 
+# Training Score: [0.96569076 0.88706986 0.92267026 0.93766223]
+# Test Score: [0.93843526 0.82213008 0.86642464 0.88787294]
+# 19
+# Training Score: [0.96342365 0.8844344  0.92168696 0.93504026]
+# Test Score: [0.93854259 0.82219702 0.87048847 0.887271  ]
+
+
 X_train = pad_sequences(X_train, padding='post', maxlen=maxlen)
 X_test = pad_sequences(X_test, padding='post', maxlen=maxlen)
 
@@ -129,22 +139,35 @@ def build_model(filters, kernel_size, pool_size, dropout_rate, n_dense_1, n_dens
 # train model
 
 #change filters and nodes in dense layer
-# model = build_model(512, 2, 3, 0.2, 128, 64, 32) # Training Score: 0.9659 Testing Score:  0.9127
-# model = build_model(512, 2, 3, 0.2, 64, 32, 16) # Training Score: 0.9582 Testing Score:  0.9123
-model = build_model(512, 2, 3, 0.2, 128, 32, 8) # Training Score: 0.9634 Testing Score:  0.9124 good at epoch 7
-# model = build_model(512, 2, 3, 0.2, 256, 64, 16) # Training Score: 0.9712 Testing Score:  0.9117 good then bad
-# model = build_model(256, 2, 3, 0.2, 128, 64, 32) # Training Score: 0.9530 Testing Score:  0.9124 good 
-# model = build_model(256, 2, 3, 0.2, 128, 64, 16) # Training Score: 0.9541 Testing Score:  0.9124 good
-# model = build_model(256, 2, 3, 0.2, 128, 64, 8) # Training Score: 0.9544 Testing Score:  0.9131 soso
-# model = build_model(256, 2, 3, 0.2, 128, 32, 16) # Training Score: 0.9526 Testing Score:  0.9124 soso
-# model = build_model(256, 2, 3, 0.2, 128, 32, 8) # Training Score: 0.9541 Testing Score:  0.9119 not good
-# model = build_model(256, 2, 3, 0.2, 64, 32, 16) # Training Score: 0.9466 Testing Score:  0.9139 
-# model = build_model(256, 2, 3, 0.2, 64, 32, 8) # Training Score: 0.9486 Testing Score:  0.9127 soso 
-# model = build_model(256, 2, 3, 0.2, 64, 16, 8) # Training Score: 0.9469 Testing Score:  0.9126
-# model = build_model(256, 2, 3, 0.2, 32, 16, 8) # Training Score: 0.9410 Testing Score:  0.9121
+model = build_model(512, 2, 3, 0.2, 128, 64, 32) 
+# Training Score: [0.96399268 0.88195869 0.91531956 0.93372106]
+# Test Score: [0.93711095 0.82238429 0.86666326 0.88552609]
+# model = build_model(512, 2, 3, 0.2, 64, 32, 16) 
+# model = build_model(512, 2, 3, 0.2, 128, 32, 8) 
+# Training Score: [0.96379809 0.88336892 0.91744316 0.93564644]
+# Test Score: [0.93707461 0.8210226  0.86845076 0.88552074]
+# model = build_model(512, 2, 3, 0.2, 256, 64, 16) 
+# model = build_model(256, 2, 3, 0.2, 128, 64, 32) 
+# model = build_model(256, 2, 3, 0.2, 128, 64, 16)
+# model = build_model(256, 2, 3, 0.2, 128, 64, 8) 
+# model = build_model(256, 2, 3, 0.2, 128, 32, 16) 
+# model = build_model(256, 2, 3, 0.2, 128, 32, 8) 
+# model = build_model(256, 2, 3, 0.2, 64, 32, 16) 
+# model = build_model(256, 2, 3, 0.2, 64, 32, 8) 
+# model = build_model(256, 2, 3, 0.2, 64, 16, 8)
+# model = build_model(256, 2, 3, 0.2, 32, 16, 8)
 
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=7, verbose=1)
-loss, score = model.evaluate(X_train, y_train, verbose=False)
-print('Training Score: {:.4f}'.format(score))
-loss, score = model.evaluate(X_test, y_test, verbose=False)
-print('Testing Score:  {:.4f}'.format(score))
+callbacks = [EarlyStopping(monitor='val_auc', patience=5)]
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=20, verbose=1, callbacks=callbacks)
+# loss, score = model.evaluate(X_train, y_train, verbose=False)
+# print('Training Score: {:.4f}'.format(score))
+# loss, score = model.evaluate(X_test, y_test, verbose=False)
+# print('Testing Score:  {:.4f}'.format(score))
+
+
+y_val = model.predict(X_train)
+y_pred = model.predict(X_test)
+score1 = roc_auc_score(y_train, y_val, average=None, multi_class='ovo')
+score2 = roc_auc_score(y_test, y_pred, average=None, multi_class='ovo')
+print('Training Score: ' + str(score1))
+print('Test Score: ' + str(score2))
