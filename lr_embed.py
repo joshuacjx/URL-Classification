@@ -61,10 +61,12 @@ INDENT = '  '
 
 # Read data
 print("Reading data...")
-MAX_DATA = 10000
-data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
-X_data = data[0].tolist()[:MAX_DATA]
-y_data = data[1].tolist()[:MAX_DATA]
+# MAX_DATA = 10000
+data = pd.read_csv('data/balanced_parsed_data_3210.csv', header=None)
+X_data = data[0].tolist()
+y_data = data[1].tolist()
+# X_data = data[0].tolist()[:MAX_DATA]
+# y_data = data[1].tolist()[:MAX_DATA]
 
 """
 # Parameter Tuning
@@ -106,3 +108,8 @@ test_score = roc_auc_score(to_categorical(y_test_ans, 4),
                            average=None, multi_class='ovo')
 print("Score on testing: " + str(test_score))
 
+
+"""
+Score on validation: [0.63913039 0.56269788 0.59467889 0.63709356]
+Score on testing: [0.64239645 0.56107815 0.58841978 0.62895424]
+"""
