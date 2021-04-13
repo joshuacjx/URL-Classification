@@ -30,7 +30,7 @@ class NaiveBayesEmbedModel:
     def to_X_embed_scaled(self, X_data):
         X_each_word_embed = [[self.get_embed(word) for word in sentence]
                              for sentence in X_data]
-        X_aggregate = [np.mean(vect_list, axis=0) for vect_list in X_each_word_embed]
+        X_aggregate = [np.max(vect_list, axis=0) for vect_list in X_each_word_embed]
         self.scaler.fit(X_aggregate)
         X_scaled = self.scaler.transform(X_aggregate)
         return X_scaled
@@ -63,7 +63,7 @@ INDENT = '  '
 
 # Read data
 print("Reading data...")
-data = pd.read_csv('data/balanced_parsed_data.csv', header=None)
+data = pd.read_csv('data/balanced_parsed_data_3210.csv', header=None)
 X_data = data[0].tolist()
 y_data = data[1].tolist()
 
@@ -104,3 +104,9 @@ test_score = roc_auc_score(to_categorical(y_test_ans, 4),
                            to_categorical(y_test_pred, 4),
                            average=None, multi_class='ovo')
 print("Score on testing: " + str(test_score))
+
+
+"""
+Score on validation: [0.60900914 0.52365851 0.55656973 0.61359097]
+Score on testing: [0.61151349 0.52140723 0.55730982 0.60641726]
+"""
