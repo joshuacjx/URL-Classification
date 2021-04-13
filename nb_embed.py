@@ -1,18 +1,10 @@
 import math
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
+from keras.utils import to_categorical
 from sklearn.metrics import roc_auc_score
 from sklearn.naive_bayes import MultinomialNB
-
-
-"""
-One simple technique that seems to work reasonably well for short texts 
-(e.g., a sentence or a tweet) is to compute the vector for each word in 
-the document, and then aggregate them using the coordinate-wise mean, min, or max.
-Source: https://stats.stackexchange.com/questions/221715/apply-word-embeddings-to-
-        entire-document-to-get-a-feature-vector
-"""
+from sklearn.preprocessing import MinMaxScaler
 
 
 class NaiveBayesEmbedModel:
@@ -116,17 +108,15 @@ model.train(X_train, y_train)
 # Validation
 print("Validating model...")
 y_valid_pred = model.predict(X_valid)
-valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
+valid_score = roc_auc_score(to_categorical(y_valid_ans, 4),
+                            to_categorical(y_valid_pred, 4),
+                            average=None, multi_class='ovo')
 print("Score on validation: " + str(valid_score))
 
 # Testing
 print("Testing model...")
 y_test_pred = model.predict(X_test)
-test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
+test_score = roc_auc_score(to_categorical(y_test_ans, 4),
+                           to_categorical(y_test_pred, 4),
+                           average=None, multi_class='ovo')
 print("Score on testing: " + str(test_score))
-
-
-"""
-Score on validation: {1: 0.5774625704302276, 2: 0.616150407663407, -1: 0.5183344126293361, -2: 0.5775913758536204}
-Score on testing: {1: 0.5757167330529608, 2: 0.6040041848963287, -1: 0.5182806424034051, -2: 0.5731691362031742}
-"""

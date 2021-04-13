@@ -1,8 +1,9 @@
 import math
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+from keras.utils import to_categorical
 from sklearn.metrics import roc_auc_score
+from sklearn.linear_model import LogisticRegression
 
 
 class LogisticRegressionEmbedModel:
@@ -108,16 +109,16 @@ model.train(X_train, y_train)
 # Validation
 print("Validating model...")
 y_valid_pred = model.predict(X_valid)
-valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
+valid_score = roc_auc_score(to_categorical(y_valid_ans, 4),
+                            to_categorical(y_valid_pred, 4),
+                            average=None, multi_class='ovo')
 print("Score on validation: " + str(valid_score))
 
 # Testing
 print("Testing model...")
 y_test_pred = model.predict(X_test)
-test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
+test_score = roc_auc_score(to_categorical(y_test_ans, 4),
+                           to_categorical(y_test_pred, 4),
+                           average=None, multi_class='ovo')
 print("Score on testing: " + str(test_score))
 
-"""
-Score on validation: {1: 0.5895800322322892, 2: 0.614440373130428, -2: 0.6460990658443447, -1: 0.5542230818826563}
-Score on testing: {1: 0.6074698795180724, 2: 0.6189039510662919, -2: 0.662770236299648, -1: 0.5574632559420996}
-"""

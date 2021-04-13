@@ -1,7 +1,8 @@
 import math
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+from keras.utils import to_categorical
 from sklearn.metrics import roc_auc_score
+from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
@@ -92,16 +93,15 @@ model.train(X_train, y_train)
 # Validation
 print("Validating model...")
 y_valid_pred = model.predict(X_valid)
-valid_score = roc_auc_score_multiclass(y_valid_ans, y_valid_pred)
+valid_score = roc_auc_score(to_categorical(y_valid_ans, 4),
+                            to_categorical(y_valid_pred, 4),
+                            average=None, multi_class='ovo')
 print("Score on validation: " + str(valid_score))
 
 # Testing
 print("Testing model...")
 y_test_pred = model.predict(X_test)
-test_score = roc_auc_score_multiclass(y_test_ans, y_test_pred)
+test_score = roc_auc_score(to_categorical(y_test_ans, 4),
+                           to_categorical(y_test_pred, 4),
+                           average=None, multi_class='ovo')
 print("Score on testing: " + str(test_score))
-
-"""
-Score on validation: {1: 0.8191172686520674, 2: 0.8369411227473667, -2: 0.872308920969973, -1: 0.7645430367504836}
-Score on testing: {1: 0.6852128514056225, 2: 0.7296014837163167, -2: 0.7831322272498743, -1: 0.633714461316746}
-"""
