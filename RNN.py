@@ -98,9 +98,9 @@ def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3
     
     # Recurrent layer
     # model.add(LSTM(128, return_sequences=True))
-    # model.add(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout))
+    model.add(LSTM(256, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout))
     # with bidirectional gate
-    model.add(Bidirectional(LSTM(64, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout)))
+    # model.add(Bidirectional(LSTM(256, return_sequences=False, dropout=dropout_rate, recurrent_dropout=recurrent_dropout)))
     
     # model.add(Dropout(0.1))
     model.add(Dense(n_dense_1, activation='relu'))
@@ -131,7 +131,7 @@ def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3
 # print('Test score: %f' % test_score)
 
 # train model, change dropout rates and nodes in dense layer
-model = build_model(0.2, 0.2, 32, 16, 8)
+model = build_model(0.2, 0.2, 128, 64, 16)
 
 # Create callbacks
 callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
@@ -164,5 +164,17 @@ Test Score: [0.94181862 0.83278358 0.87534123 0.89222665]
 without drop out 0.1: epoch stops at 22 R:64 D: 32, 16, 8 
 Training Score: [0.96255468 0.88018314 0.91255899 0.93061194]
 Test Score: [0.94213832 0.8325654  0.87376838 0.88931592]
+
+without drop out 0.1: epoch stops at 15 R:128 D: 64, 32, 16
+Training Score: [0.97005699 0.90348209 0.93050197 0.94687537]
+Test Score: [0.94282869 0.83387974 0.87682298 0.89454678]
+
+epoch stops at 11 R:256, D: 128, 64, 16
+Training Score: [0.97900612 0.92508984 0.9477194  0.96178847]
+Test Score: [0.94435102 0.83514778 0.87758712 0.89326018]
+
+without gate epoch stops at 14, rest same as above
+Training Score: [0.97490824 0.91381751 0.94052618 0.95386801]
+Test Score: [0.94155902 0.83417657 0.87512293 0.89391336]
 
 '''
