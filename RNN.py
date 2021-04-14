@@ -58,7 +58,7 @@ X_train = get_vocab_index_rep(X_train_word_rep, vocab_index_dict)
 X_test_word_freq, X_test_word_rep = get_word_freq_and_word_rep(X_test)
 X_test = get_vocab_index_rep(X_test_word_rep, vocab_index_dict)
 
-maxlen = 10
+maxlen = 20
 X_train = pad_sequences(X_train, padding='post', maxlen=maxlen)
 X_test = pad_sequences(X_test, padding='post', maxlen=maxlen)
 
@@ -136,7 +136,7 @@ model = build_model(0.2, 0.2, 128, 64, 16)
 # Create callbacks
 callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
 # ModelCheckpoint('../models/model.h5', save_best_only=True, save_weights_only=False)]
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=50, verbose=1, callbacks=callbacks)
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=50, batch_size=32, verbose=1, callbacks=callbacks)
 
 # get scores for validation and test, labels should be in one-hot vector
 y_val = model.predict(X_train)
@@ -177,4 +177,23 @@ without gate epoch stops at 14, rest same as above
 Training Score: [0.97490824 0.91381751 0.94052618 0.95386801]
 Test Score: [0.94155902 0.83417657 0.87512293 0.89391336]
 
+with gate maxlex = 20
+Training Score: [0.9815753  0.93365642 0.95372632 0.966477  ]
+Test Score: [0.94438574 0.83706692 0.88068646 0.89503688]
+
+batch_size = 32 -> used
+aining Score: [0.98186493 0.93505457 0.9549567  0.96672216]
+Test Score: [0.94435581 0.83803908 0.88019144 0.89690211]
+
+maxlen = 18
+Training Score: [0.98272759 0.93542779 0.95690418 0.96877337]
+Test Score: [0.94402607 0.83727384 0.88107101 0.89632157]
+
+maxlen = 19
+Training Score: [0.98244954 0.93488131 0.95620345 0.96773935]
+Test Score: [0.94387098 0.8374998  0.87745103 0.89409063]
+
+without gate -> used
+Training Score: [0.97453554 0.91128087 0.93903356 0.95416133]
+Test Score: [0.94499588 0.83557261 0.8783797  0.89541279]
 '''
