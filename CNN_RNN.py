@@ -106,8 +106,9 @@ def build_model(filters, kernel_size, pool_size, dropout_rate, n_dense_1, n_dens
     model.add(layers.Embedding(vocab_size, embedding_dim, input_length=maxlen, weights=[embedding_matrix], trainable=False))
     model.add(layers.Conv1D(filters=filters, kernel_size=kernel_size, activation='relu'))
     model.add(layers.MaxPooling1D(pool_size=pool_size))
-    # model.add(layers.Dropout(dropout_rate))
-    model.add(layers.LSTM(256, return_sequences=False, dropout=0.2, recurrent_dropout=0.2))
+    model.add(layers.Dropout(dropout_rate))
+    model.add(layers.Bidirectional(layers.LSTM(256, return_sequences=False, recurrent_dropout=0.2)))
+    model.add(layers.Dropout(dropout_rate))
     model.add(layers.Dense(n_dense_1, activation='relu'))
     model.add(layers.Dense(n_dense_2, activation='relu'))
     model.add(layers.Dense(n_dense_3, activation='relu'))
@@ -118,28 +119,20 @@ def build_model(filters, kernel_size, pool_size, dropout_rate, n_dense_1, n_dens
     return model
 
 # train model
-# Training Score: [0.96235185 0.88102368 0.91494746 0.93248581]
-# Test Score: [0.94215233 0.83131594 0.87693063 0.89453969]
 
-# remove dropout layer
 # remove LSTM dropout
-# number of nodes in LSTM
-# bidirectional
+# Training Score: [0.96800443 0.89700609 0.92766081 0.94403018]
+# Test Score: [0.94349768 0.83176006 0.87859054 0.89458671]
 
-#change filters and nodes in dense layer
+# before and after dropout layer with LSTM recurrent dropout
+# model = build_model(512, 2, 3, 0.2, 128, 64, 32)
+# Training Score: [0.96808459 0.89073534 0.92441884 0.940764  ]
+# Test Score: [0.94420434 0.83160344 0.87752356 0.89390241]
+
+# number of nodes in LSTM
+
 model = build_model(512, 2, 3, 0.2, 128, 64, 32)
-# model = build_model(512, 2, 3, 0.2, 64, 32, 16) 
-# model = build_model(512, 2, 3, 0.2, 128, 32, 8) 
-# model = build_model(512, 2, 3, 0.2, 256, 64, 16) 
-# model = build_model(256, 2, 3, 0.2, 128, 64, 32) 
-# model = build_model(256, 2, 3, 0.2, 128, 64, 16)
-# model = build_model(256, 2, 3, 0.2, 128, 64, 8) 
-# model = build_model(256, 2, 3, 0.2, 128, 32, 16) 
-# model = build_model(256, 2, 3, 0.2, 128, 32, 8) 
-# model = build_model(256, 2, 3, 0.2, 64, 32, 16) 
-# model = build_model(256, 2, 3, 0.2, 64, 32, 8) 
-# model = build_model(256, 2, 3, 0.2, 64, 16, 8)
-# model = build_model(256, 2, 3, 0.2, 32, 16, 8)
+
 
 callbacks = [EarlyStopping(monitor='val_auc', patience=5)]
 model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=20, verbose=1, callbacks=callbacks)
