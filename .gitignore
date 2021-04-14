@@ -3,3 +3,5 @@ __pycache__
 .DS_Store
 /venv
 data/glove.6B.50d.txt
+RNN_BD.py
+balanced_parsed_data_3210.csv
