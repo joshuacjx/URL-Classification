@@ -11,16 +11,21 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
 from keras.callbacks import EarlyStopping
+from autocorrect import Speller
+
 
 np.random.seed(42)
 tf.random.set_seed(42)
 
-def get_word_freq_and_word_rep(data):
+# sp = Speller(lang='en')
+
+def get_word_freq_and_word_rep(data):    
     word_freq = {}
     word_rep = []
     urls = data
     for url in urls:
         parsed = parse(url.lower())
+        # parsed = [sp(word) for word in parse(url.lower())] # obsolete: auto spell correction
         word_rep.append(parsed)
         for word in parsed:
             word_freq[word] = word_freq.get(word, 0) + 1
@@ -44,7 +49,7 @@ def get_vocab_index_rep(word_rep, vocab_index_dict):
         vocab_index_rep.append([word_to_index(word, vocab_index_dict) for word in rep])
     return vocab_index_rep
 
-df = pd.read_csv('data/balanced_data_3210.csv', header=None) 
+df = pd.read_csv('data/balanced_data_3210.csv', header=None)
 X_train, X_test, y_train, y_test = train_test_split(df[0].tolist(), np.array(df[1].tolist(), dtype=np.int), test_size=0.2, random_state=42)
 y_train = to_categorical(y_train, 4)
 y_test = to_categorical(y_test, 4)
@@ -58,13 +63,6 @@ X_test_word_freq, X_test_word_rep = get_word_freq_and_word_rep(X_test)
 X_test = get_vocab_index_rep(X_test_word_rep, vocab_index_dict)
 
 maxlen = 19
-# 20 
-# Training Score: [0.96569076 0.88706986 0.92267026 0.93766223]
-# Test Score: [0.93843526 0.82213008 0.86642464 0.88787294]
-# 19
-# Training Score: [0.96342365 0.8844344  0.92168696 0.93504026]
-# Test Score: [0.93854259 0.82219702 0.87048847 0.887271  ]
-
 
 X_train = pad_sequences(X_train, padding='post', maxlen=maxlen)
 X_test = pad_sequences(X_test, padding='post', maxlen=maxlen)
@@ -140,12 +138,8 @@ def build_model(filters, kernel_size, pool_size, dropout_rate, n_dense_1, n_dens
 
 #change filters and nodes in dense layer
 model = build_model(512, 2, 3, 0.2, 128, 64, 32) 
-# Training Score: [0.96399268 0.88195869 0.91531956 0.93372106]
-# Test Score: [0.93711095 0.82238429 0.86666326 0.88552609]
 # model = build_model(512, 2, 3, 0.2, 64, 32, 16) 
 # model = build_model(512, 2, 3, 0.2, 128, 32, 8) 
-# Training Score: [0.96379809 0.88336892 0.91744316 0.93564644]
-# Test Score: [0.93707461 0.8210226  0.86845076 0.88552074]
 # model = build_model(512, 2, 3, 0.2, 256, 64, 16) 
 # model = build_model(256, 2, 3, 0.2, 128, 64, 32) 
 # model = build_model(256, 2, 3, 0.2, 128, 64, 16)

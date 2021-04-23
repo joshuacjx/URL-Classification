@@ -58,13 +58,6 @@ X_test_word_freq, X_test_word_rep = get_word_freq_and_word_rep(X_test)
 X_test = get_vocab_index_rep(X_test_word_rep, vocab_index_dict)
 
 maxlen = 19
-# 20 
-# Training Score: [0.96569076 0.88706986 0.92267026 0.93766223]
-# Test Score: [0.93843526 0.82213008 0.86642464 0.88787294]
-# 19
-# Training Score: [0.96342365 0.8844344  0.92168696 0.93504026]
-# Test Score: [0.93854259 0.82219702 0.87048847 0.887271  ]
-
 
 X_train = pad_sequences(X_train, padding='post', maxlen=maxlen)
 X_test = pad_sequences(X_test, padding='post', maxlen=maxlen)
