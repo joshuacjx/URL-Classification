@@ -111,25 +111,6 @@ def build_model(dropout_rate, recurrent_dropout, n_dense_1, n_dense_2, n_dense_3
         # metrics=['accuracy'])
     return model
 
-# grid search
-
-# param_grid = dict(filters=[256],
-#                   kernel_size=[2],
-#                   pool_size=[3],
-#                   dropout_rate=[0.2], 
-#                   n_dense_1=[32], 
-#                   n_dense_2=[16], 
-#                   n_dense_3=[8])
-
-# model = KerasClassifier(build_fn=build_model, epochs=10)
-# grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=5)
-# # scoring='f1_weighted', 'roc_auc_ovr_weighted', 'roc_auc_ovo_weighted', refit=False
-# grid_result = grid.fit(X_train, y_train)
-
-# print('Best: %f using %s' % (grid_result.best_score_, grid_result.best_params_))
-# test_score = grid.score(X_test, y_test)
-# print('Test score: %f' % test_score)
-
 # train model, change dropout rates and nodes in dense layer
 model = build_model(0.2, 0.2, 128, 64, 16)
 
@@ -178,7 +159,7 @@ Training Score: [0.97490824 0.91381751 0.94052618 0.95386801]
 Test Score: [0.94155902 0.83417657 0.87512293 0.89391336]
 
 with gate maxlex = 20
-Training Score: [0.9815753  0.93365642 0.95372632 0.966477  ]
+Training Score: [0.9815753  0.93365642 0.95372632 0.966477]
 Test Score: [0.94438574 0.83706692 0.88068646 0.89503688]
 
 batch_size = 32 -> used
