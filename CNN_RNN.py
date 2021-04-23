@@ -127,7 +127,7 @@ def build_model(filters, kernel_size, pool_size, dropout_rate, n_dense_1, n_dens
 model = build_model(512, 2, 3, 0.2, 128, 64, 32)
 
 
-callbacks = [EarlyStopping(monitor='val_auc', patience=5)]
+callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
 model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=20, verbose=1, callbacks=callbacks)
 # loss, score = model.evaluate(X_train, y_train, verbose=False)
 # print('Training Score: {:.4f}'.format(score))
